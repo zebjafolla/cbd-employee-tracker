@@ -464,7 +464,15 @@
     function getJobGroupTotals(jobName) {
       const entries = getJobGroupEntries(jobName);
       const totalHours = entries.reduce((sum, e) => sum + Number(e.hours || 0), 0);
-      const masterSalesAmount = round2(entries.reduce((sum, e) => sum + Number(e.salesAmount || 0), 0));
+      const salesValues = entries
+        .map(e => round2(Number(e.salesAmount || 0)))
+        .filter(v => v > 0);
+      const uniqueSalesValues = [...new Set(salesValues)];
+      const masterSalesAmount = round2(
+        uniqueSalesValues.length === 1
+          ? uniqueSalesValues[0]
+          : salesValues.reduce((sum, v) => sum + v, 0)
+      );
       const commissionPercent = entries.reduce((max, e) => Math.max(max, Number(e.commissionPercent || 0)), 0);
       return {
         entries,
