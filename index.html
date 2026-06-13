@@ -441,7 +441,7 @@
         driveMinutes += Number(entry.driveMinutes || 0);
         if (entry.category === 'Install') {
           installHours += entry.hours;
-          installCommission += Number(entry.commissionShare || 0);
+          installCommission += getAllocatedCommissionShare(entry);
           const pre40Left = Math.max(0, 40 - startTotal);
           const pre40Hours = Math.min(entry.hours, pre40Left);
           const post40Hours = Math.max(0, entry.hours - pre40Hours);
@@ -450,6 +450,44 @@
       });
       return { totalHours, driveMinutes, installHours, installCommission, installFloorAmount: round2(installFloorAmount) };
     }
+
+    function normalizeJobName(name) {
+      return String(name || '').trim().toLowerCase();
+    }
+
+    function getJobGroupEntries(jobName) {
+      const key = normalizeJobName(jobName);
+      if (!key) return [];
+      return state.entries.filter(e => e.category === 'Install' && normalizeJobName(e.jobName) === key);
+    }
+
+    function getJobGroupTotals(jobName) {
+      const entries = getJobGroupEntries(jobName);
+      const totalHours = entries.reduce((sum, e) => sum + Number(e.hours || 0), 0);
+      const masterSalesAmount = entries.reduce((max, e) => Math.max(max, Number(e.salesAmount || 0)), 0);
+      const commissionPercent = entries.reduce((max, e) => Math.max(max, Number(e.commissionPercent || 0)), 0);
+      return {
+        entries,
+        totalHours,
+        masterSalesAmount,
+        commissionPercent
+      };
+    }
+
+    function getAllocatedSalesAmount(entry) {
+      if (!entry || entry.category !== 'Install') return Number(entry?.salesAmount || 0);
+      const group = getJobGroupTotals(entry.jobName);
+      if (!group.masterSalesAmount || !group.totalHours) return Number(entry.salesAmount || 0);
+      return round2(group.masterSalesAmount * (Number(entry.hours || 0) / group.totalHours));
+    }
+
+    function getAllocatedCommissionShare(entry) {
+      if (!entry || entry.category !== 'Install') return Number(entry.commissionShare || 0);
+      const allocatedSales = getAllocatedSalesAmount(entry);
+      const percent = Number(entry.commissionPercent || getJobGroupTotals(entry.jobName).commissionPercent || 0);
+      return round2(allocatedSales * (percent / 100));
+    }
+
     function renderEntries(items) {
       if (!items.length) { els.entryList.innerHTML = '<div class="empty">No entries in the current period yet.</div>'; return; }
       els.entryList.innerHTML = '';
@@ -467,8 +505,10 @@
           const floorBase = Number(state.settings.installFloorRate || 30);
           const overtimeFloor = floorBase * Number(state.settings.overtimeMultiplier || 1.5);
           const floorAmount = round2((pre40Hours * floorBase) + (post40Hours * overtimeFloor));
-          const effectiveRate = entry.hours ? round2(entry.commissionShare / entry.hours) : 0;
-          extra = `<div class="entry-meta">Effective rate: ${money(effectiveRate)} · Floor needed: ${money(floorAmount)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
+          const allocatedSales = getAllocatedSalesAmount(entry);
+          const allocatedCommission = getAllocatedCommissionShare(entry);
+          const effectiveRate = entry.hours ? round2(allocatedCommission / entry.hours) : 0;
+          extra = `<div class="entry-meta">Allocated sales: ${money(allocatedSales)} · Effective rate: ${money(effectiveRate)} · Floor needed: ${money(floorAmount)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
         } else {
           const pre40Left = Math.max(0, 40 - startTotal);
           const pre40Hours = Math.min(entry.hours, pre40Left);
@@ -476,8 +516,10 @@
           const pay = round2((pre40Hours * state.settings.commonHourlyRate) + (post40Hours * state.settings.commonHourlyRate * state.settings.overtimeMultiplier));
           extra = `<div class="entry-meta">Hourly pay: ${money(pay)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
         }
-        const salesLine = Number(entry.salesAmount || 0) > 0
-          ? `<div class="entry-meta">Sales: ${money(entry.salesAmount)} · Commission: ${entry.commissionPercent}% · Share: ${money(entry.commissionShare || 0)}</div>`
+        const displaySales = entry.category === 'Install' ? getAllocatedSalesAmount(entry) : Number(entry.salesAmount || 0);
+        const displayCommission = entry.category === 'Install' ? getAllocatedCommissionShare(entry) : Number(entry.commissionShare || 0);
+        const salesLine = (entry.category === 'Install' ? displaySales : Number(entry.salesAmount || 0)) > 0
+          ? `<div class="entry-meta">Sales: ${money(displaySales)} · Commission: ${entry.commissionPercent}% · Share: ${money(displayCommission)}</div>`
           : '';
         div.innerHTML = `<div class="entry-top"><div><strong>${escapeHtml(entry.jobName)}</strong><div class="entry-meta">${prettyDate(entry.date)} · ${escapeHtml(entry.category)}</div></div><div class="hours">${entry.hours.toFixed(2)} hrs</div></div><div class="entry-bottom"><div><div class="entry-meta">${entry.startTime} - ${entry.endTime} · Drive ${entry.driveMinutes} min</div>${salesLine}${extra}${entry.notes ? `<div class="note">${escapeHtml(entry.notes)}</div>` : ''}</div><div class="stack"><button class="btn btn-secondary" data-edit="${entry.id}">Edit</button><button class="btn btn-danger" data-delete="${entry.id}">Delete</button></div></div>`;
         div.querySelector('[data-edit]').addEventListener('click', () => loadEntry(entry.id));
