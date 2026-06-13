@@ -1,0 +1,8 @@
+{
+  "name": "CBD Installer Tracker",
+  "short_name": "CBD Tracker",
+  "display": "standalone",
+  "start_url": "./index.html",
+  "background_color": "#f8f4ef",
+  "theme_color": "#8b1e2d"
+}
