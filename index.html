@@ -183,7 +183,8 @@
       <div class="stats-grid">
         <div class="mini"><span>Install hours</span><div class="hours" id="installHours">0.00</div></div>
         <div class="mini"><span>Effective install rate</span><div class="money" id="effectiveInstallRate">$0.00</div></div>
-        <div class="mini"><span>Install floor check</span><div class="money" id="installFloorAmount">$0.00</div></div>
+        <div class="mini"><span>Install commission</span><div class="money" id="installCommission">$0.00</div></div>
+        <div class="mini"><span>Current floor</span><div class="money" id="installFloorAmount">$0.00</div></div>
         <div class="mini"><span>Status</span><div class="money" id="installStatus">—</div></div>
       </div>
     </section>
@@ -314,7 +315,7 @@
       workDate: $('workDate'), jobName: $('jobName'), category: $('category'), driveMinutes: $('driveMinutes'), originPlace: $('originPlace'), destinationPlace: $('destinationPlace'), destinationAddress: $('destinationAddress'), savePlaceBtn: $('savePlaceBtn'), bulkStops: $('bulkStops'), parseStopsBtn: $('parseStopsBtn'), estimateDriveBtn: $('estimateDriveBtn'), useLastDestinationBtn: $('useLastDestinationBtn'), driveEstimateStatus: $('driveEstimateStatus'), startTime: $('startTime'), endTime: $('endTime'),
       salesAmount: $('salesAmount'), commissionPercent: $('commissionPercent'), notes: $('notes'), entryForm: $('entryForm'), clearFormBtn: $('clearFormBtn'), formError: $('formError'),
       basePeriodStart: $('basePeriodStart'), commonHourlyRate: $('commonHourlyRate'), installFloorRate: $('installFloorRate'), overtimeMultiplier: $('overtimeMultiplier'), saveSettingsBtn: $('saveSettingsBtn'),
-      totalHours: $('totalHours'), driveHours: $('driveHours'), installHours: $('installHours'), effectiveInstallRate: $('effectiveInstallRate'), installFloorAmount: $('installFloorAmount'), installStatus: $('installStatus'),
+      totalHours: $('totalHours'), driveHours: $('driveHours'), installHours: $('installHours'), effectiveInstallRate: $('effectiveInstallRate'), installCommission: $('installCommission'), installFloorAmount: $('installFloorAmount'), installStatus: $('installStatus'),
       periodHeadline: $('periodHeadline'), periodSummaryBox: $('periodSummaryBox'), entryList: $('entryList'), themeToggle: $('themeToggle'), exportCsvBtn: $('exportCsvBtn'), exportJsonBtn: $('exportJsonBtn'), exportSettingsBtn: $('exportSettingsBtn'), importBtn: $('importBtn'), importFile: $('importFile'), prevPeriodBtn: $('prevPeriodBtn'), nextPeriodBtn: $('nextPeriodBtn')
     };
     init();
@@ -635,6 +636,7 @@
       els.driveHours.textContent = (summary.driveMinutes / 60).toFixed(2);
       els.installHours.textContent = summary.installHours.toFixed(2);
       els.effectiveInstallRate.textContent = money(summary.installHours ? summary.installCommission / summary.installHours : 0);
+      els.installCommission.textContent = money(summary.installCommission);
       els.installFloorAmount.textContent = money(summary.installFloorAmount);
       els.installStatus.textContent = summary.installHours ? (summary.installCommission >= summary.installFloorAmount ? 'Meets floor' : 'Below floor') : '—';
       els.installStatus.className = 'money ' + (summary.installHours ? (summary.installCommission >= summary.installFloorAmount ? 'status-good' : 'status-warn') : '');
