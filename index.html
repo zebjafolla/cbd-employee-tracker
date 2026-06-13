@@ -39,16 +39,42 @@
     input, select, textarea { width: 100%; background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1rem; }
     textarea { min-height: 92px; resize: vertical; }
     input:focus, select:focus, textarea:focus { outline: 2px solid var(--color-primary); outline-offset: 2px; }
-    .app { max-width: 920px; margin: 0 auto; padding: max(env(safe-area-inset-top), 0px) 1rem calc(6.5rem + env(safe-area-inset-bottom)); }
-    .topbar { position: sticky; top: 0; z-index: 20; margin: 0 -1rem; padding: .85rem 1rem; background: color-mix(in srgb, var(--color-bg) 90%, transparent); backdrop-filter: blur(15px); border-bottom: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent); }
+
+    .app {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: max(env(safe-area-inset-top), 0px) 1rem calc(8.5rem + env(safe-area-inset-bottom));
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      margin: 0 -1rem;
+      padding: .55rem .85rem;
+      background: var(--color-bg);
+      border-bottom: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
+      backdrop-filter: blur(10px);
+    }
+
     .brand { display: flex; justify-content: space-between; gap: .8rem; align-items: center; }
     .brand-left { display: flex; gap: .8rem; align-items: center; }
-    .logo { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(180deg, var(--color-primary), var(--color-primary-hover)); color: var(--color-text-inverse); display: grid; place-items: center; box-shadow: var(--shadow-sm); }
-    .logo svg { width: 28px; height: 28px; }
+    .logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, var(--color-primary), var(--color-primary-hover));
+      color: var(--color-text-inverse);
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .logo svg { width: 24px; height: 24px; }
     h1, h2, h3, p { margin: 0; }
-    h1 { font-size: var(--text-xl); line-height: 1.08; }
+    h1 { font-size: 1.2rem; line-height: 1.05; }
     h2 { font-size: var(--text-lg); margin-bottom: .3rem; }
     .subtitle, .muted { color: var(--color-text-muted); }
+    .subtitle { font-size: .82rem; }
     .icon-btn, .seg-btn, .nav-btn { min-height: 46px; }
     .icon-btn { min-width: 46px; border-radius: var(--radius-full); border: 1px solid var(--color-border); background: var(--color-surface); }
     .hero, .card { margin-top: 1rem; background: var(--color-surface); border: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); padding: 1rem; }
@@ -74,20 +100,44 @@
     .list { display: grid; gap: .75rem; }
     .entry-top, .entry-bottom { display: flex; justify-content: space-between; gap: .75rem; }
     .entry-meta, .note { color: var(--color-text-muted); font-size: var(--text-sm); }
-    .footer-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: .7rem 1rem calc(.7rem + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--color-bg) 92%, transparent); backdrop-filter: blur(16px); border-top: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent); }
-    .footer-nav-inner { max-width: 920px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
-    .nav-btn { border-radius: 1rem; color: var(--color-text-muted); font-size: var(--text-xs); font-weight: 700; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: .55rem; }
+    .footer-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 30;
+      padding: .45rem .75rem calc(.45rem + env(safe-area-inset-bottom));
+      background: var(--color-bg);
+      border-top: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
+      backdrop-filter: blur(10px);
+    }
+    .footer-nav-inner {
+      max-width: 920px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .4rem;
+    }
+    .nav-btn {
+      min-height: 42px;
+      border-radius: .85rem;
+      color: var(--color-text-muted);
+      font-size: .74rem;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: .4rem;
+    }
     .nav-btn.active { background: var(--color-primary-highlight); color: var(--color-primary-hover); }
     .hidden { display: none !important; }
     .empty { padding: 1.2rem; border: 1px dashed var(--color-border); border-radius: 1rem; text-align: center; color: var(--color-text-muted); background: var(--color-surface-2); }
     .help { margin-top: .35rem; color: var(--color-text-muted); font-size: var(--text-xs); }
-    .banner { margin-top: .9rem; padding: .9rem 1rem; border-radius: 1rem; background: linear-gradient(135deg, var(--color-primary-highlight), color-mix(in srgb, var(--color-accent) 30%, var(--color-surface))); color: var(--color-primary-hover); font-size: var(--text-sm); }
-    .install-steps { padding-left: 1.2rem; margin: .5rem 0 0; color: var(--color-text); }
-    .install-steps li { margin: .35rem 0; }
     .status-good { color: var(--color-success); }
     .status-warn { color: var(--color-warning); }
     @media (max-width: 700px) {
-      .hero-grid, .stats-grid, .split, .footer-nav-inner { grid-template-columns: 1fr; }
+      .hero-grid, .stats-grid, .split { grid-template-columns: 1fr; }
       .entry-top, .entry-bottom, .section-head { flex-direction: column; align-items: flex-start; }
       .actions .btn, .stack .btn { width: 100%; }
     }
@@ -111,7 +161,6 @@
         </div>
         <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">☾</button>
       </div>
-      <div class="banner">Install on iPhone with Safari: Share → Add to Home Screen → turn on Open as Web App → Add.</div>
     </header>
 
     <section class="hero">
@@ -441,8 +490,13 @@
       reader.readAsText(file);
     }
     function switchScreen(target) {
-      document.querySelectorAll('[data-screen]').forEach(sec => sec.classList.toggle('hidden', sec.dataset.screen !== target));
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.target === target));
+      document.querySelectorAll('[data-screen]').forEach(sec =>
+        sec.classList.toggle('hidden', sec.dataset.screen !== target)
+      );
+      document.querySelectorAll('.nav-btn').forEach(btn =>
+        btn.classList.toggle('active', btn.dataset.target === target)
+      );
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     function updatePeriodButtons() { document.querySelectorAll('[data-view-period]').forEach(btn => btn.classList.toggle('active', Number(btn.dataset.viewPeriod) === state.selectedViewPeriod)); }
     function currentPeriodRange(lengthDays) {
