@@ -343,11 +343,20 @@
       els.importFile.addEventListener('change', importJson);
     }
     function renderCategorySelect() {
+      const categories = Array.isArray(state.settings.categories) && state.settings.categories.length
+        ? state.settings.categories
+        : ['Install', 'Service', 'Shop'];
+      state.settings.categories = categories;
       els.category.innerHTML = '';
-      state.settings.categories.forEach(cat => {
+      categories.forEach(cat => {
         const option = document.createElement('option');
-        option.value = cat; option.textContent = cat; els.category.appendChild(option);
+        option.value = cat;
+        option.textContent = cat;
+        els.category.appendChild(option);
       });
+      if (!els.category.value && categories.length) {
+        els.category.value = categories[0];
+      }
     }
     function saveSettings() {
       state.settings.basePeriodStart = els.basePeriodStart.value || state.settings.basePeriodStart;
