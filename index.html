@@ -183,7 +183,7 @@
       <div class="stats-grid">
         <div class="mini"><span>Install hours</span><div class="hours" id="installHours">0.00</div></div>
         <div class="mini"><span>Effective install rate</span><div class="money" id="effectiveInstallRate">$0.00</div></div>
-        <div class="mini"><span>Install commission</span><div class="money" id="installCommission">$0.00</div></div>
+        <div class="mini"><span>Install piece-rate pay</span><div class="money" id="installCommission">$0.00</div></div>
         <div class="mini"><span>Current floor</span><div class="money" id="installFloorAmount">$0.00</div></div>
         <div class="mini"><span>Status</span><div class="money" id="installStatus">—</div></div>
       </div>
@@ -191,7 +191,7 @@
 
     <section class="section" data-screen="add">
       <div class="card">
-        <div class="section-head"><div><h2>Add entry</h2><p class="muted">Track sales, commission, hourly work, and drive time.</p></div></div>
+        <div class="section-head"><div><h2>Add entry</h2><p class="muted">Track job totals, piece-rate pay, hourly work, and drive time.</p></div></div>
         <form id="entryForm" class="form-grid">
           <div class="split">
             <div><label for="workDate">Date</label><input id="workDate" type="date" required></div>
@@ -223,8 +223,8 @@
             <div><label for="endTime">End time</label><input id="endTime" type="time" required></div>
           </div>
           <div class="split">
-            <div><label for="salesAmount">Sales amount</label><input id="salesAmount" type="number" min="0" step="0.01" placeholder="0.00"></div>
-            <div><label for="commissionPercent">Commission %</label><select id="commissionPercent"><option value="3">3%</option><option value="4">4%</option><option value="5" selected>5%</option><option value="6">6%</option></select></div>
+            <div><label for="salesAmount">Job total</label><input id="salesAmount" type="number" min="0" step="0.01" placeholder="0.00"></div>
+            <div><label for="commissionPercent">Piece rate %</label><select id="commissionPercent"><option value="3">3%</option><option value="4">4%</option><option value="5" selected>5%</option><option value="6">6%</option></select></div>
           </div>
           <div><label for="notes">Notes</label><textarea id="notes" placeholder="Anything useful for payroll or job tracking."></textarea></div>
           <div class="actions"><button type="submit" class="btn btn-primary">Save entry</button><button type="button" class="btn btn-secondary" id="clearFormBtn">Clear form</button></div>
@@ -640,7 +640,7 @@
       els.installFloorAmount.textContent = money(summary.installFloorAmount);
       els.installStatus.textContent = summary.installHours ? (summary.installCommission >= summary.installFloorAmount ? 'Meets floor' : 'Below floor') : '—';
       els.installStatus.className = 'money ' + (summary.installHours ? (summary.installCommission >= summary.installFloorAmount ? 'status-good' : 'status-warn') : '');
-      els.periodSummaryBox.innerHTML = `<strong>Current range:</strong> ${prettyDate(range.start)} to ${prettyDate(range.end)}<br><strong>Total hours:</strong> ${summary.totalHours.toFixed(2)}<br><strong>Install commission:</strong> ${money(summary.installCommission)}<br><strong>Install floor requirement:</strong> ${money(summary.installFloorAmount)}<br><strong>Common non-install hourly rate:</strong> ${money(state.settings.commonHourlyRate)}<br><strong>Overtime multiplier:</strong> ${state.settings.overtimeMultiplier.toFixed(2)}x`;
+      els.periodSummaryBox.innerHTML = `<strong>Current range:</strong> ${prettyDate(range.start)} to ${prettyDate(range.end)}<br><strong>Total hours:</strong> ${summary.totalHours.toFixed(2)}<br><strong>Install piece-rate pay:</strong> ${money(summary.installCommission)}<br><strong>Current floor requirement:</strong> ${money(summary.installFloorAmount)}<br><strong>Common non-install hourly rate:</strong> ${money(state.settings.commonHourlyRate)}<br><strong>Overtime multiplier:</strong> ${state.settings.overtimeMultiplier.toFixed(2)}x`;
       renderEntries(items);
       updatePeriodButtons();
     }
@@ -726,11 +726,14 @@
           const floorBase = Number(state.settings.installFloorRate || 30);
           const overtimeFloor = floorBase * Number(state.settings.overtimeMultiplier || 1.5);
           const floorAmount = round2((pre40Hours * floorBase) + (post40Hours * overtimeFloor));
-          const allocatedSales = getAllocatedSalesAmount(entry);
-          const allocatedCommission = getAllocatedCommissionShare(entry);
-          const effectiveRate = entry.hours ? round2(allocatedCommission / entry.hours) : 0;
+          const allocatedJobTotal = getAllocatedSalesAmount(entry);
+          const pieceRatePay = getAllocatedCommissionShare(entry);
+          const effectiveRate = entry.hours ? round2(pieceRatePay / entry.hours) : 0;
           const jobGroup = getJobGroupTotals(entry.jobName);
-          extra = `<div class="entry-meta">Allocated sales: ${money(allocatedSales)} · Job total: ${money(jobGroup.masterSalesAmount)} · Linked days: ${jobGroup.entries.length} · Effective rate: ${money(effectiveRate)} · Floor needed: ${money(floorAmount)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
+          const linkedDaysText = jobGroup.entries.length > 1
+            ? ` · Allocated job total: ${money(allocatedJobTotal)} · Linked days: ${jobGroup.entries.length}`
+            : '';
+          extra = `<div class="entry-meta">Piece-rate pay: ${money(pieceRatePay)} · Piece rate: ${Number(entry.commissionPercent || jobGroup.commissionPercent || 0)}% · Job total: ${money(jobGroup.masterSalesAmount || Number(entry.salesAmount || 0))}${linkedDaysText} · Effective rate: ${money(effectiveRate)} · Floor needed: ${money(floorAmount)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
         } else {
           const pre40Left = Math.max(0, 40 - startTotal);
           const pre40Hours = Math.min(entry.hours, pre40Left);
@@ -738,7 +741,7 @@
           const pay = round2((pre40Hours * state.settings.commonHourlyRate) + (post40Hours * state.settings.commonHourlyRate * state.settings.overtimeMultiplier));
           extra = `<div class="entry-meta">Hourly pay: ${money(pay)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
         }
-        const displaySales = entry.category === 'Install' ? getAllocatedSalesAmount(entry) : Number(entry.salesAmount || 0);
+        const displaySales = Number(entry.salesAmount || 0);
         const displayCommission = entry.category === 'Install' ? getAllocatedCommissionShare(entry) : Number(entry.commissionShare || 0);
         const salesLine = (entry.category === 'Install' ? displaySales : Number(entry.salesAmount || 0)) > 0
           ? `<div class="entry-meta">Sales: ${money(displaySales)} · Commission: ${entry.commissionPercent}% · Share: ${money(displayCommission)}</div>`
@@ -764,7 +767,7 @@
     }
     function exportCurrentPeriodCsv() {
       const items = computePeriodItems(14);
-      const rows = [['Date','Job Name','Category','Start','End','Hours','Drive Minutes','Sales Amount','Commission Percent','Commission Share','Notes']];
+      const rows = [['Date','Job Name','Category','Start','End','Hours','Drive Minutes','Job Total','Piece Rate Percent','Piece-Rate Pay','Notes']];
       items.forEach(e => rows.push([e.date,e.jobName,e.category,e.startTime,e.endTime,e.hours,e.driveMinutes,e.salesAmount,e.commissionPercent,e.commissionShare,(e.notes||'').replace(/\n/g,' ')]));
       const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\n');
       downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'cbd-installer-tracker-2-week-export.csv');
