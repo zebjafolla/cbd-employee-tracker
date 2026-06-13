@@ -201,8 +201,20 @@
             <div><label for="driveMinutes">Drive minutes</label><input id="driveMinutes" type="number" min="0" step="1" value="0"></div>
           </div>
           <div class="split">
-            <div><label for="destinationAddress">Destination address</label><input id="destinationAddress" type="text" placeholder="123 Main St, City, State"></div>
+            <div><label for="originPlace">Origin</label><select id="originPlace"></select></div>
+            <div><label for="destinationPlace">Destination</label><select id="destinationPlace"></select></div>
+          </div>
+          <div class="split">
+            <div><label for="destinationAddress">New place / address</label><input id="destinationAddress" type="text" placeholder="123 Main St, City, State"></div>
+            <div><label>&nbsp;</label><button type="button" id="savePlaceBtn" class="btn btn-secondary">Save place</button></div>
+          </div>
+          <div class="split">
+            <div><label for="bulkStops">Today's stops (one address per line)</label><textarea id="bulkStops" placeholder="123 Main St, Tallahassee, FL&#10;456 Oak Rd, Quincy, FL&#10;789 Market St, Midway, FL"></textarea></div>
+            <div><label>&nbsp;</label><button type="button" id="parseStopsBtn" class="btn btn-secondary">Add stops</button></div>
+          </div>
+          <div class="split">
             <div><label>&nbsp;</label><button type="button" id="estimateDriveBtn" class="btn btn-secondary">Estimate drive time</button></div>
+            <div><label>&nbsp;</label><button type="button" id="useLastDestinationBtn" class="btn btn-secondary">Use last destination as next origin</button></div>
           </div>
           <div id="driveEstimateStatus" class="muted" style="margin-top:-8px;"></div>
           <div class="split">
@@ -287,7 +299,10 @@
         commonHourlyRate: 20,
         installFloorRate: 30,
         overtimeMultiplier: 1.5,
-        categories: ['Install', 'Service', 'Shop']
+        categories: ['Install', 'Service', 'Shop'],
+        savedPlaces: [
+          { id: 'shop', label: 'Shop', address: 'Shop / base location' }
+        ]
       },
       selectedViewPeriod: 14,
       periodOffset: 0,
@@ -296,7 +311,7 @@
     const state = structuredClone(defaultState);
     const $ = id => document.getElementById(id);
     const els = {
-      workDate: $('workDate'), jobName: $('jobName'), category: $('category'), driveMinutes: $('driveMinutes'), destinationAddress: $('destinationAddress'), estimateDriveBtn: $('estimateDriveBtn'), driveEstimateStatus: $('driveEstimateStatus'), startTime: $('startTime'), endTime: $('endTime'),
+      workDate: $('workDate'), jobName: $('jobName'), category: $('category'), driveMinutes: $('driveMinutes'), originPlace: $('originPlace'), destinationPlace: $('destinationPlace'), destinationAddress: $('destinationAddress'), savePlaceBtn: $('savePlaceBtn'), bulkStops: $('bulkStops'), parseStopsBtn: $('parseStopsBtn'), estimateDriveBtn: $('estimateDriveBtn'), useLastDestinationBtn: $('useLastDestinationBtn'), driveEstimateStatus: $('driveEstimateStatus'), startTime: $('startTime'), endTime: $('endTime'),
       salesAmount: $('salesAmount'), commissionPercent: $('commissionPercent'), notes: $('notes'), entryForm: $('entryForm'), clearFormBtn: $('clearFormBtn'), formError: $('formError'),
       basePeriodStart: $('basePeriodStart'), commonHourlyRate: $('commonHourlyRate'), installFloorRate: $('installFloorRate'), overtimeMultiplier: $('overtimeMultiplier'), saveSettingsBtn: $('saveSettingsBtn'),
       totalHours: $('totalHours'), driveHours: $('driveHours'), installHours: $('installHours'), effectiveInstallRate: $('effectiveInstallRate'), installFloorAmount: $('installFloorAmount'), installStatus: $('installStatus'),
@@ -308,6 +323,7 @@
       setDefaults();
       bindEvents();
       renderCategorySelect();
+      renderPlaceSelects();
       render();
       applyTheme(matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       persist();
@@ -344,6 +360,8 @@
       els.workDate.value = today;
       els.startTime.value = '08:00';
       els.endTime.value = '17:00';
+      normalizePlaces();
+      renderPlaceSelects();
     }
     function bindEvents() {
       els.entryForm.addEventListener('submit', saveEntry);
@@ -359,7 +377,10 @@
       els.exportSettingsBtn.addEventListener('click', exportSettingsJson);
       els.importBtn.addEventListener('click', () => els.importFile.click());
       els.importFile.addEventListener('change', importJson);
+      els.savePlaceBtn.addEventListener('click', savePlaceFromInput);
+      els.parseStopsBtn.addEventListener('click', addBulkStops);
       els.estimateDriveBtn.addEventListener('click', estimateDriveTime);
+      els.useLastDestinationBtn.addEventListener('click', useLastDestinationAsOrigin);
     }
     function renderCategorySelect() {
       const categories = Array.isArray(state.settings.categories) && state.settings.categories.length
@@ -376,6 +397,135 @@
       if (!els.category.value && categories.length) {
         els.category.value = categories[0];
       }
+    }
+
+    function normalizePlaces() {
+      const existing = Array.isArray(state.settings.savedPlaces) ? state.settings.savedPlaces : [];
+      const deduped = [];
+      const seen = new Set();
+      existing.forEach(place => {
+        if (!place || !place.address) return;
+        const address = String(place.address).trim();
+        if (!address) return;
+        const key = address.toLowerCase();
+        if (seen.has(key)) return;
+        seen.add(key);
+        deduped.push({ id: place.id || crypto.randomUUID(), label: (place.label || address).trim(), address });
+      });
+      if (!deduped.length) deduped.push({ id: 'shop', label: 'Shop', address: 'Shop / base location' });
+      state.settings.savedPlaces = deduped;
+    }
+
+    function renderPlaceSelects() {
+      normalizePlaces();
+      [els.originPlace, els.destinationPlace].forEach(select => {
+        if (!select) return;
+        const current = select.value;
+        select.innerHTML = '';
+        const empty = document.createElement('option');
+        empty.value = '';
+        empty.textContent = 'Select a place';
+        select.appendChild(empty);
+        state.settings.savedPlaces.forEach(place => {
+          const option = document.createElement('option');
+          option.value = place.id;
+          option.textContent = `${place.label} — ${place.address}`;
+          select.appendChild(option);
+        });
+        if (current && state.settings.savedPlaces.some(place => place.id === current)) select.value = current;
+      });
+      if (els.originPlace && !els.originPlace.value) {
+        const shop = state.settings.savedPlaces.find(place => place.label.toLowerCase() === 'shop');
+        if (shop) els.originPlace.value = shop.id;
+      }
+    }
+
+    function makePlace(address, label = '') {
+      const clean = String(address || '').trim();
+      if (!clean) return null;
+      return { id: crypto.randomUUID(), label: String(label || clean).trim(), address: clean };
+    }
+
+    function addPlace(address, label = '') {
+      normalizePlaces();
+      const clean = String(address || '').trim();
+      if (!clean) return null;
+      const existing = state.settings.savedPlaces.find(place => place.address.toLowerCase() === clean.toLowerCase());
+      if (existing) return existing;
+      const place = makePlace(clean, label);
+      if (!place) return null;
+      state.settings.savedPlaces.push(place);
+      persist();
+      renderPlaceSelects();
+      return place;
+    }
+
+    function savePlaceFromInput() {
+      const address = els.destinationAddress.value.trim();
+      if (!address) return setDriveEstimateStatus('Enter an address to save first.', true);
+      const place = addPlace(address);
+      if (!place) return setDriveEstimateStatus('Could not save that address.', true);
+      els.destinationPlace.value = place.id;
+      els.destinationAddress.value = '';
+      setDriveEstimateStatus(`Saved place: ${place.label}`);
+    }
+
+    function addBulkStops() {
+      const lines = (els.bulkStops.value || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      if (!lines.length) return setDriveEstimateStatus('Paste one address per line first.', true);
+      let added = 0, lastPlace = null;
+      lines.forEach(line => { const before = state.settings.savedPlaces.length; const place = addPlace(line); if (place) lastPlace = place; if (state.settings.savedPlaces.length > before) added += 1; });
+      if (lastPlace) els.destinationPlace.value = lastPlace.id;
+      els.bulkStops.value = '';
+      setDriveEstimateStatus(`Added ${added} new stop${added === 1 ? '' : 's'}.`);
+    }
+
+    function getPlaceById(id) { return (state.settings.savedPlaces || []).find(place => place.id === id) || null; }
+
+    async function geocodeAddress(address) {
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(address)}`;
+      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error('Address lookup failed.');
+      const data = await res.json();
+      if (!Array.isArray(data) || !data.length) throw new Error('Address not found.');
+      return { lat: Number(data[0].lat), lon: Number(data[0].lon) };
+    }
+
+    async function getDriveMinutesBetween(originLat, originLon, destLat, destLon) {
+      const url = `https://router.project-osrm.org/route/v1/driving/${originLon},${originLat};${destLon},${destLat}?overview=false`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Route lookup failed.');
+      const data = await res.json();
+      const route = data && data.routes && data.routes[0];
+      if (!route || typeof route.duration !== 'number') throw new Error('No driving route found.');
+      return Math.max(0, Math.round(route.duration / 60));
+    }
+
+    async function estimateDriveTime() {
+      const origin = getPlaceById(els.originPlace.value);
+      const destination = getPlaceById(els.destinationPlace.value) || (els.destinationAddress.value.trim() ? addPlace(els.destinationAddress.value.trim()) : null);
+      if (!origin || !destination) return setDriveEstimateStatus('Pick both an origin and destination.', true);
+      const originalLabel = els.estimateDriveBtn.textContent;
+      els.estimateDriveBtn.disabled = true;
+      els.estimateDriveBtn.textContent = 'Estimating...';
+      setDriveEstimateStatus('Looking up route...');
+      try {
+        const [originCoords, destCoords] = await Promise.all([geocodeAddress(origin.address), geocodeAddress(destination.address)]);
+        const minutes = await getDriveMinutesBetween(originCoords.lat, originCoords.lon, destCoords.lat, destCoords.lon);
+        els.driveMinutes.value = String(minutes);
+        setDriveEstimateStatus(`Estimated ${minutes} min from ${origin.label} to ${destination.label}.`);
+      } catch (error) {
+        setDriveEstimateStatus(error && error.message ? error.message : 'Could not estimate drive time.', true);
+      } finally {
+        els.estimateDriveBtn.disabled = false;
+        els.estimateDriveBtn.textContent = originalLabel;
+      }
+    }
+
+    function useLastDestinationAsOrigin() {
+      if (!els.destinationPlace.value) return setDriveEstimateStatus('Choose a destination first.', true);
+      els.originPlace.value = els.destinationPlace.value;
+      setDriveEstimateStatus('Moved destination to origin for the next trip.');
     }
     function setDriveEstimateStatus(message, isError = false) {
       if (!els.driveEstimateStatus) return;
@@ -424,38 +574,6 @@
       return Math.max(0, Math.round(route.duration / 60));
     }
 
-    async function estimateDriveTime() {
-      const address = els.destinationAddress.value.trim();
-      if (!address) {
-        setDriveEstimateStatus('Enter a destination address first.', true);
-        return;
-      }
-      const originalLabel = els.estimateDriveBtn.textContent;
-      els.estimateDriveBtn.disabled = true;
-      els.estimateDriveBtn.textContent = 'Estimating...';
-      setDriveEstimateStatus('Getting your location and route estimate...');
-      try {
-        const position = await getCurrentPositionAsync();
-        const destination = await geocodeAddress(address);
-        const minutes = await getDriveEstimateMinutes(
-          position.coords.latitude,
-          position.coords.longitude,
-          destination.lat,
-          destination.lon
-        );
-        els.driveMinutes.value = String(minutes);
-        setDriveEstimateStatus(`Estimated drive time: ${minutes} min to ${destination.label}`);
-      } catch (error) {
-        const message = error && error.code === 1
-          ? 'Location permission denied. Allow location access and try again.'
-          : (error && error.message ? error.message : 'Could not estimate drive time.');
-        setDriveEstimateStatus(message, true);
-      } finally {
-        els.estimateDriveBtn.disabled = false;
-        els.estimateDriveBtn.textContent = originalLabel;
-      }
-    }
-
     function saveSettings() {
       state.settings.basePeriodStart = els.basePeriodStart.value || state.settings.basePeriodStart;
       state.settings.commonHourlyRate = Number(els.commonHourlyRate.value || 0);
@@ -470,12 +588,20 @@
       const category = els.category.value;
       const salesAmount = Number(els.salesAmount.value || 0);
       const commissionPercent = Number(els.commissionPercent.value || 0);
+      const originPlace = getPlaceById(els.originPlace.value);
+      const destinationPlace = getPlaceById(els.destinationPlace.value);
       const entry = {
         id: state.editingId || crypto.randomUUID(),
         date: els.workDate.value,
         jobName: els.jobName.value.trim(),
         category,
         driveMinutes: Number(els.driveMinutes.value || 0),
+        originPlaceId: originPlace ? originPlace.id : '',
+        originLabel: originPlace ? originPlace.label : '',
+        originAddress: originPlace ? originPlace.address : '',
+        destinationPlaceId: destinationPlace ? destinationPlace.id : '',
+        destinationLabel: destinationPlace ? destinationPlace.label : '',
+        destinationAddress: destinationPlace ? destinationPlace.address : '',
         startTime: els.startTime.value,
         endTime: els.endTime.value,
         hours,
