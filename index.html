@@ -170,8 +170,10 @@
           <p class="muted" id="periodHeadline">Wednesday-to-Tuesday repeating periods.</p>
         </div>
         <div class="pill-row">
+          <button class="seg-btn" id="prevPeriodBtn" type="button">← Prev</button>
           <button class="seg-btn active" data-view-period="14">2-week</button>
           <button class="seg-btn" data-view-period="7">1-week</button>
+          <button class="seg-btn" id="nextPeriodBtn" type="button">Next →</button>
         </div>
       </div>
       <div class="hero-grid">
@@ -283,6 +285,7 @@
         categories: ['Install', 'Service', 'Shop']
       },
       selectedViewPeriod: 14,
+      periodOffset: 0,
       editingId: null
     };
     const state = structuredClone(defaultState);
@@ -329,8 +332,10 @@
       els.clearFormBtn.addEventListener('click', resetForm);
       els.saveSettingsBtn.addEventListener('click', saveSettings);
       document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', () => switchScreen(btn.dataset.target)));
-      document.querySelectorAll('[data-view-period]').forEach(btn => btn.addEventListener('click', () => { state.selectedViewPeriod = Number(btn.dataset.viewPeriod); updatePeriodButtons(); render(); persist(); }));
+      document.querySelectorAll('[data-view-period]').forEach(btn => btn.addEventListener('click', () => { state.selectedViewPeriod = Number(btn.dataset.viewPeriod); state.periodOffset = 0; updatePeriodButtons(); render(); persist(); }));
       els.themeToggle.addEventListener('click', () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+      els.prevPeriodBtn.addEventListener('click', () => { state.periodOffset -= 1; render(); persist(); });
+      els.nextPeriodBtn.addEventListener('click', () => { state.periodOffset += 1; render(); persist(); });
       els.exportCsvBtn.addEventListener('click', exportCurrentPeriodCsv);
       els.exportJsonBtn.addEventListener('click', exportBackupJson);
       els.exportSettingsBtn.addEventListener('click', exportSettingsJson);
@@ -387,7 +392,12 @@
       const items = computePeriodItems(state.selectedViewPeriod);
       const summary = summarize(items);
       const range = currentPeriodRange(state.selectedViewPeriod);
-      els.periodHeadline.textContent = `${state.selectedViewPeriod === 14 ? '2-week' : '1-week'} view: ${prettyDate(range.start)} to ${prettyDate(range.end)}`;
+      const periodLabel = state.periodOffset === 0
+        ? 'current period'
+        : state.periodOffset < 0
+          ? `${Math.abs(state.periodOffset)} period(s) back`
+          : `${state.periodOffset} period(s) forward`;
+      els.periodHeadline.textContent = `${state.selectedViewPeriod === 14 ? '2-week' : '1-week'} view: ${prettyDate(range.start)} to ${prettyDate(range.end)} · ${periodLabel}`;
       els.totalHours.textContent = summary.totalHours.toFixed(2);
       els.driveHours.textContent = (summary.driveMinutes / 60).toFixed(2);
       els.installHours.textContent = summary.installHours.toFixed(2);
@@ -501,12 +511,16 @@
     function updatePeriodButtons() { document.querySelectorAll('[data-view-period]').forEach(btn => btn.classList.toggle('active', Number(btn.dataset.viewPeriod) === state.selectedViewPeriod)); }
     function currentPeriodRange(lengthDays) {
       const base = state.settings.basePeriodStart || formatDateInput(new Date());
-      const today = new Date(); const day = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const today = new Date();
+      const day = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       const baseDate = new Date(base + 'T12:00:00');
       const diffDays = Math.floor((day - baseDate) / 86400000);
       const cycles = diffDays >= 0 ? Math.floor(diffDays / lengthDays) : 0;
-      const start = new Date(baseDate); start.setDate(baseDate.getDate() + cycles * lengthDays);
-      const end = new Date(start); end.setDate(start.getDate() + lengthDays - 1);
+      const adjustedCycles = cycles + (state.periodOffset || 0);
+      const start = new Date(baseDate);
+      start.setDate(baseDate.getDate() + adjustedCycles * lengthDays);
+      const end = new Date(start);
+      end.setDate(start.getDate() + lengthDays - 1);
       return { start: formatDateInput(start), end: formatDateInput(end) };
     }
     function getNearestWednesday(iso) { const d = new Date(iso + 'T12:00:00'); const diff = (d.getDay() - 3 + 7) % 7; d.setDate(d.getDate() - diff); return formatDateInput(d); }
