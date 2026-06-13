@@ -698,8 +698,9 @@
     function getAllocatedSalesAmount(entry) {
       if (!entry || entry.category !== 'Install') return Number(entry?.salesAmount || 0);
       const group = getJobGroupTotals(entry.jobName);
-      if (!group.masterSalesAmount || !group.totalHours) return Number(entry.salesAmount || 0);
-      return round2(group.masterSalesAmount * (Number(entry.hours || 0) / group.totalHours));
+      const linkedDays = group.entries.length;
+      if (!group.masterSalesAmount || !linkedDays) return Number(entry.salesAmount || 0);
+      return round2(group.masterSalesAmount / linkedDays);
     }
 
     function getAllocatedCommissionShare(entry) {
