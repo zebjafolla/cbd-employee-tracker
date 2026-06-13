@@ -463,7 +463,10 @@
           const pay = round2((pre40Hours * state.settings.commonHourlyRate) + (post40Hours * state.settings.commonHourlyRate * state.settings.overtimeMultiplier));
           extra = `<div class="entry-meta">Hourly pay: ${money(pay)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
         }
-        div.innerHTML = `<div class="entry-top"><div><strong>${escapeHtml(entry.jobName)}</strong><div class="entry-meta">${prettyDate(entry.date)} · ${escapeHtml(entry.category)}</div></div><div class="hours">${entry.hours.toFixed(2)} hrs</div></div><div class="entry-bottom"><div><div class="entry-meta">${entry.startTime} - ${entry.endTime} · Drive ${entry.driveMinutes} min</div>${extra}${entry.notes ? `<div class="note">${escapeHtml(entry.notes)}</div>` : ''}</div><div class="stack"><button class="btn btn-secondary" data-edit="${entry.id}">Edit</button><button class="btn btn-danger" data-delete="${entry.id}">Delete</button></div></div>`;
+        const salesLine = Number(entry.salesAmount || 0) > 0
+          ? `<div class="entry-meta">Sales: ${money(entry.salesAmount)} · Commission: ${entry.commissionPercent}% · Share: ${money(entry.commissionShare || 0)}</div>`
+          : '';
+        div.innerHTML = `<div class="entry-top"><div><strong>${escapeHtml(entry.jobName)}</strong><div class="entry-meta">${prettyDate(entry.date)} · ${escapeHtml(entry.category)}</div></div><div class="hours">${entry.hours.toFixed(2)} hrs</div></div><div class="entry-bottom"><div><div class="entry-meta">${entry.startTime} - ${entry.endTime} · Drive ${entry.driveMinutes} min</div>${salesLine}${extra}${entry.notes ? `<div class="note">${escapeHtml(entry.notes)}</div>` : ''}</div><div class="stack"><button class="btn btn-secondary" data-edit="${entry.id}">Edit</button><button class="btn btn-danger" data-delete="${entry.id}">Delete</button></div></div>`;
         div.querySelector('[data-edit]').addEventListener('click', () => loadEntry(entry.id));
         div.querySelector('[data-delete]').addEventListener('click', () => deleteEntry(entry.id));
         els.entryList.appendChild(div);
