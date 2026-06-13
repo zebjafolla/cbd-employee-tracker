@@ -305,17 +305,30 @@
       renderCategorySelect();
       render();
       applyTheme(matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      persist();
     }
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
-        Object.assign(state, defaultState, parsed);
+        Object.assign(state, structuredClone(defaultState), parsed);
         state.settings = Object.assign({}, defaultState.settings, parsed.settings || {});
-      } catch (e) {}
+        if (!Array.isArray(state.entries)) state.entries = [];
+        if (!Array.isArray(state.settings.categories) || !state.settings.categories.length) {
+          state.settings.categories = ['Install', 'Service', 'Shop'];
+        }
+      } catch (e) {
+        console.warn('Could not load saved app data.', e);
+      }
     }
-    function persist() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    function persist() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn('Could not save app data.', e);
+      }
+    }
     function setDefaults() {
       const today = formatDateInput(new Date());
       if (!state.settings.basePeriodStart) state.settings.basePeriodStart = getNearestWednesday(today);
