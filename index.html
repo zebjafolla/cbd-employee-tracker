@@ -737,23 +737,33 @@
     function renderEntries(items) {
       if (!items.length) { els.entryList.innerHTML = '<div class="empty">No work log entries in the current period yet.</div>'; return; }
       els.entryList.innerHTML = '';
-      let runningHours = 0;
+      const weeklyHours = new Map();
+
+      function getWorkweekStart(iso) {
+        const d = new Date(iso + 'T12:00:00');
+        const day = d.getDay();
+        const diffToWednesday = (day - 3 + 7) % 7;
+        d.setDate(d.getDate() - diffToWednesday);
+        return formatDateInput(d);
+      }
       items.forEach(entry => {
-        const startTotal = runningHours;
-        runningHours += entry.hours;
+        const weekKey = getWorkweekStart(entry.date);
+        const startTotal = weeklyHours.get(weekKey) || 0;
+        const entryHours = Number(entry.hours || 0);
+        weeklyHours.set(weekKey, startTotal + entryHours);
         const div = document.createElement('article');
         div.className = 'entry';
         let extra = '';
         if (entry.category === 'Install') {
           const pre40Left = Math.max(0, 40 - startTotal);
-          const pre40Hours = Math.min(entry.hours, pre40Left);
-          const post40Hours = Math.max(0, entry.hours - pre40Hours);
+          const pre40Hours = Math.min(entryHours, pre40Left);
+          const post40Hours = Math.max(0, entryHours - pre40Hours);
           const floorBase = Number(state.settings.installFloorRate || 30);
           const overtimeFloor = floorBase * Number(state.settings.overtimeMultiplier || 1.5);
           const floorAmount = round2((pre40Hours * floorBase) + (post40Hours * overtimeFloor));
           const allocatedJobTotal = getAllocatedSalesAmount(entry);
           const dayPercentageTotal = getAllocatedCommissionShare(entry);
-          const effectiveRate = entry.hours ? round2(dayPercentageTotal / entry.hours) : 0;
+          const effectiveRate = entryHours ? round2(dayPercentageTotal / entryHours) : 0;
           const jobGroup = getJobGroupTotals(entry.jobName);
           const linkedDaysText = jobGroup.entries.length > 1
             ? ` · Allocated job total: ${money(allocatedJobTotal)} · Linked days: ${jobGroup.entries.length}`
@@ -761,8 +771,8 @@
           extra = `<div class="entry-meta">Day percentage total: ${money(dayPercentageTotal)} · Percentage rate: ${Number(entry.commissionPercent || jobGroup.commissionPercent || 0)}% · Job total: ${money(jobGroup.masterSalesAmount || Number(entry.salesAmount || 0))}${linkedDaysText} · Effective hourly rate: ${money(effectiveRate)} · Floor minimum: ${money(floorAmount)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
         } else {
           const pre40Left = Math.max(0, 40 - startTotal);
-          const pre40Hours = Math.min(entry.hours, pre40Left);
-          const post40Hours = Math.max(0, entry.hours - pre40Hours);
+          const pre40Hours = Math.min(entryHours, pre40Left);
+          const post40Hours = Math.max(0, entryHours - pre40Hours);
           const pay = round2((pre40Hours * state.settings.commonHourlyRate) + (post40Hours * state.settings.commonHourlyRate * state.settings.overtimeMultiplier));
           extra = `<div class="entry-meta">Hourly pay: ${money(pay)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
         }
