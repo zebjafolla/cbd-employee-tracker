@@ -100,14 +100,14 @@
     .list { display: grid; gap: .75rem; }
     .entry-top, .entry-bottom { display: flex; justify-content: space-between; gap: .75rem; }
     .entry-top { align-items: flex-start; }
-    .entry-bottom { align-items: flex-start; }
-    .entry-body { display: grid; gap: .4rem; flex: 1; min-width: 0; }
-    .entry-meta, .note { color: var(--color-text-muted); font-size: var(--text-sm); line-height: 1.45; word-break: break-word; }
+    .entry-bottom { align-items: flex-start; margin-top: .45rem; }
+    .entry-body { display: grid; gap: .55rem; flex: 1; min-width: 0; }
+    .entry-meta, .note { color: var(--color-text-muted); font-size: var(--text-sm); line-height: 1.5; word-break: break-word; }
     .entry-meta strong, .note strong { color: var(--color-text); }
-    .entry .hours { white-space: nowrap; }
-    .entry .stack { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .entry .hours { white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .entry .stack { display: flex; gap: .5rem; flex-wrap: wrap; align-self: flex-start; }
     .entry .btn { min-height: 44px; }
-    .note { margin-top: .2rem; }
+    .note { margin-top: .1rem; }
     .footer-nav {
       position: fixed;
       left: 0;
@@ -648,7 +648,7 @@
       els.installFloorAmount.textContent = money(summary.installFloorAmount);
       els.installStatus.textContent = summary.installHours ? (summary.installCommission >= summary.installFloorAmount ? 'Meets floor' : 'Below floor') : '—';
       els.installStatus.className = 'money ' + (summary.installHours ? (summary.installCommission >= summary.installFloorAmount ? 'status-good' : 'status-warn') : '');
-      els.periodSummaryBox.innerHTML = `<strong>Current range:</strong> ${prettyDate(range.start)} to ${prettyDate(range.end)}<br><strong>Total hours:</strong> ${summary.totalHours.toFixed(2)}<br><strong>Pay period percentage total:</strong> ${money(summary.installCommission)}<br><strong>Floor minimum:</strong> ${money(summary.installFloorAmount)}<br><strong>Common non-install hourly rate:</strong> ${money(state.settings.commonHourlyRate)}<br><strong>Overtime multiplier:</strong> ${state.settings.overtimeMultiplier.toFixed(2)}x`;
+      els.periodSummaryBox.innerHTML = `<strong>Current range:</strong> ${prettyDate(range.start)} to ${prettyDate(range.end)}<br><strong>Total hours:</strong> ${summary.totalHours.toFixed(2)}<br><strong>Current view percentage total:</strong> ${money(summary.installCommission)}<br><strong>Floor minimum:</strong> ${money(summary.installFloorAmount)}<br><strong>Common non-install hourly rate:</strong> ${money(state.settings.commonHourlyRate)}<br><strong>Overtime multiplier:</strong> ${state.settings.overtimeMultiplier.toFixed(2)}x`;
       renderEntries(items);
       updatePeriodButtons();
     }
@@ -773,12 +773,10 @@
           const dayPercentageTotal = getAllocatedCommissionShare(entry);
           const effectiveRate = entryHours ? round2(dayPercentageTotal / entryHours) : 0;
           const jobGroup = getJobGroupTotals(entry.jobName);
-          const linkedDaysText = jobGroup.entries.length > 1
-            ? ` · Allocated job total: ${money(allocatedJobTotal)} · Linked days: ${jobGroup.entries.length}`
-            : '';
           extra = `
             <div class="entry-meta"><strong>Percentage rate:</strong> ${Number(entry.commissionPercent || jobGroup.commissionPercent || 0)}%</div>
-            <div class="entry-meta"><strong>Job total:</strong> ${money(jobGroup.masterSalesAmount || Number(entry.salesAmount || 0))}${linkedDaysText}</div>
+            <div class="entry-meta"><strong>Job total:</strong> ${money(jobGroup.masterSalesAmount || Number(entry.salesAmount || 0))}</div>
+            ${jobGroup.entries.length > 1 ? `<div class="entry-meta"><strong>Allocated share for this day:</strong> ${money(allocatedJobTotal)} · <strong>Linked days:</strong> ${jobGroup.entries.length}</div>` : ''}
             <div class="entry-meta"><strong>Effective hourly rate:</strong> ${money(effectiveRate)}</div>
             <div class="entry-meta"><strong>Floor minimum:</strong> ${money(floorAmount)}</div>
             <div class="entry-meta"><strong>Pre-40:</strong> ${pre40Hours.toFixed(2)}h · <strong>Post-40:</strong> ${post40Hours.toFixed(2)}h</div>
@@ -793,9 +791,7 @@
             <div class="entry-meta"><strong>Pre-40:</strong> ${pre40Hours.toFixed(2)}h · <strong>Post-40:</strong> ${post40Hours.toFixed(2)}h</div>
           `;
         }
-        const displaySales = Number(entry.salesAmount || 0);
-        const displayCommission = entry.category === 'Install' ? getAllocatedCommissionShare(entry) : Number(entry.commissionShare || 0);
-        div.innerHTML = `<div class="entry-top"><div><strong>${escapeHtml(entry.jobName)}</strong><div class="entry-meta">${prettyDate(entry.date)} · ${escapeHtml(entry.category)}</div></div><div class="hours">${entry.hours.toFixed(2)} hrs</div></div><div class="entry-bottom"><div class="entry-body"><div class="entry-meta"><strong>Time:</strong> ${entry.startTime} - ${entry.endTime}</div><div class="entry-meta"><strong>Drive:</strong> ${entry.driveMinutes} min</div>${displaySales > 0 ? `<div class="entry-meta"><strong>Job total:</strong> ${money(displaySales)}</div>` : ''}${displayCommission > 0 ? `<div class="entry-meta"><strong>Day percentage total:</strong> ${money(displayCommission)}</div>` : ''}${extra}${entry.notes ? `<div class="note"><strong>Notes:</strong> ${escapeHtml(entry.notes)}</div>` : ''}</div><div class="stack"><button class="btn btn-secondary" data-edit="${entry.id}">Edit</button><button class="btn btn-danger" data-delete="${entry.id}">Delete</button></div></div>`;
+        div.innerHTML = `<div class="entry-top"><div><strong>${escapeHtml(entry.jobName)}</strong><div class="entry-meta">${prettyDate(entry.date)} · ${escapeHtml(entry.category)}</div></div><div class="hours">${entry.hours.toFixed(2)} hrs</div></div><div class="entry-bottom"><div class="entry-body"><div class="entry-meta"><strong>Time:</strong> ${entry.startTime} - ${entry.endTime}</div><div class="entry-meta"><strong>Drive:</strong> ${entry.driveMinutes} min</div>${extra}${entry.notes ? `<div class="note"><strong>Notes:</strong> ${escapeHtml(entry.notes)}</div>` : ''}</div><div class="stack"><button class="btn btn-secondary" data-edit="${entry.id}">Edit</button><button class="btn btn-danger" data-delete="${entry.id}">Delete</button></div></div>`;
         div.querySelector('[data-edit]').addEventListener('click', () => loadEntry(entry.id));
         div.querySelector('[data-delete]').addEventListener('click', () => deleteEntry(entry.id));
         els.entryList.appendChild(div);
