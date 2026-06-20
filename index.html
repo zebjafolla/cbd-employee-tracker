@@ -171,32 +171,6 @@
       </div>
     </header>
 
-    <section class="hero">
-      <div class="section-head">
-        <div>
-          <h2>Current pay view</h2>
-          <p class="muted" id="periodHeadline">Wednesday-to-Tuesday repeating periods.</p>
-        </div>
-        <div class="pill-row">
-          <button class="seg-btn" id="prevPeriodBtn" type="button">← Prev</button>
-          <button class="seg-btn active" data-view-period="14">2-week</button>
-          <button class="seg-btn" data-view-period="7">1-week</button>
-          <button class="seg-btn" id="nextPeriodBtn" type="button">Next →</button>
-        </div>
-      </div>
-      <div class="hero-grid">
-        <div class="metric"><div class="metric-label">Total worked hours</div><div class="metric-value" id="totalHours">0.00</div></div>
-        <div class="metric"><div class="metric-label">Drive time hours</div><div class="metric-value" id="driveHours">0.00</div></div>
-      </div>
-      <div class="stats-grid">
-        <div class="mini"><span>Install hours</span><div class="hours" id="installHours">0.00</div></div>
-        <div class="mini"><span>Effective hourly rate</span><div class="money" id="effectiveInstallRate">$0.00</div></div>
-        <div class="mini"><span>Pay period percentage total</span><div class="money" id="installCommission">$0.00</div></div>
-        <div class="mini"><span>Floor minimum</span><div class="money" id="installFloorAmount">$0.00</div></div>
-        <div class="mini"><span>Status</span><div class="money" id="installStatus">—</div></div>
-      </div>
-    </section>
-
     <section class="section" data-screen="add">
       <div class="card">
         <div class="section-head"><div><h2>Add entry</h2><p class="muted">Track job totals, percentage pay, hourly work, and drive time.</p></div></div>
@@ -243,7 +217,7 @@
 
     <section class="section hidden" data-screen="periods">
       <div class="card">
-        <div class="section-head"><div><h2>Pay settings</h2><p class="muted">Wednesday start, common hourly rate, and overtime floor checks.</p></div></div>
+        <div class="section-head"><div><h2>Pay settings</h2><p class="muted">Wednesday start, common hourly rate, overtime floor checks, and current-view summary.</p></div></div>
         <div class="form-grid">
           <div class="split">
             <div><label for="basePeriodStart">Repeating period start</label><input id="basePeriodStart" type="date"></div>
@@ -260,8 +234,33 @@
     </section>
 
     <section class="section hidden" data-screen="entries">
+      <div class="hero">
+        <div class="section-head">
+          <div>
+            <h2>Current pay view</h2>
+            <p class="muted" id="periodHeadline">Wednesday-to-Tuesday repeating periods.</p>
+          </div>
+          <div class="pill-row">
+            <button class="seg-btn" id="prevPeriodBtn" type="button">Prev</button>
+            <button class="seg-btn active" data-view-period="14">2-week</button>
+            <button class="seg-btn" data-view-period="7">1-week</button>
+            <button class="seg-btn" id="nextPeriodBtn" type="button">Next</button>
+          </div>
+        </div>
+        <div class="hero-grid">
+          <div class="metric"><div class="metric-label">Total worked hours</div><div class="metric-value" id="totalHours">0.00</div></div>
+          <div class="metric"><div class="metric-label">Drive time hours</div><div class="metric-value" id="driveHours">0.00</div></div>
+        </div>
+        <div class="stats-grid">
+          <div class="mini"><span>Install hours</span><div class="hours" id="installHours">0.00</div></div>
+          <div class="mini"><span>Effective hourly rate</span><div class="money" id="effectiveInstallRate">$0.00</div></div>
+          <div class="mini"><span>Current view percentage total</span><div class="money" id="installCommission">$0.00</div></div>
+          <div class="mini"><span>Floor minimum</span><div class="money" id="installFloorAmount">$0.00</div></div>
+          <div class="mini"><span>Status</span><div class="money" id="installStatus">—</div></div>
+        </div>
+      </div>
       <div class="card">
-        <div class="section-head"><div><h2>Work log</h2><p class="muted">Daily work details and pay-period totals.</p></div></div>
+        <div class="section-head"><div><h2>Work log</h2><p class="muted">Daily work details and current-view totals.</p></div></div>
         <div id="entryList" class="list"></div>
       </div>
     </section>
@@ -776,6 +775,7 @@
           extra = `
             <div class="entry-meta"><strong>Percentage rate:</strong> ${Number(entry.commissionPercent || jobGroup.commissionPercent || 0)}%</div>
             <div class="entry-meta"><strong>Job total:</strong> ${money(jobGroup.masterSalesAmount || Number(entry.salesAmount || 0))}</div>
+            <div class="entry-meta"><strong>Actual payout:</strong> ${money(dayPercentageTotal)}</div>
             ${jobGroup.entries.length > 1 ? `<div class="entry-meta"><strong>Allocated share for this day:</strong> ${money(allocatedJobTotal)} · <strong>Linked days:</strong> ${jobGroup.entries.length}</div>` : ''}
             <div class="entry-meta"><strong>Effective hourly rate:</strong> ${money(effectiveRate)}</div>
             <div class="entry-meta"><strong>Floor minimum:</strong> ${money(floorAmount)}</div>
