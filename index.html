@@ -650,6 +650,14 @@
       const overtimeFloor = floorBase * Number(state.settings.overtimeMultiplier || 1.5);
       const weeklyHours = new Map();
 
+      function getWorkweekStart(iso) {
+        const d = new Date(iso + 'T12:00:00');
+        const day = d.getDay();
+        const diffToWednesday = (day - 3 + 7) % 7;
+        d.setDate(d.getDate() - diffToWednesday);
+        return formatDateInput(d);
+      }
+
       items.forEach(entry => {
         totalHours += Number(entry.hours || 0);
         driveMinutes += Number(entry.driveMinutes || 0);
@@ -658,8 +666,7 @@
           installHours += Number(entry.hours || 0);
           installCommission += getAllocatedCommissionShare(entry);
 
-          const weekRange = currentPeriodRange(7, entry.date);
-          const weekKey = weekRange.start;
+          const weekKey = getWorkweekStart(entry.date);
           const weekRunningHours = weeklyHours.get(weekKey) || 0;
 
           const entryHours = Number(entry.hours || 0);
