@@ -99,15 +99,7 @@
     .btn-danger { background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface-2)); border: 1px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border)); }
     .list { display: grid; gap: .75rem; }
     .entry-top, .entry-bottom { display: flex; justify-content: space-between; gap: .75rem; }
-    .entry-top { align-items: flex-start; }
-    .entry-bottom { align-items: flex-start; margin-top: .45rem; }
-    .entry-body { display: grid; gap: .55rem; flex: 1; min-width: 0; }
-    .entry-meta, .note { color: var(--color-text-muted); font-size: var(--text-sm); line-height: 1.5; word-break: break-word; }
-    .entry-meta strong, .note strong { color: var(--color-text); }
-    .entry .hours { white-space: nowrap; font-variant-numeric: tabular-nums; }
-    .entry .stack { display: flex; gap: .5rem; flex-wrap: wrap; align-self: flex-start; }
-    .entry .btn { min-height: 44px; }
-    .note { margin-top: .1rem; }
+    .entry-meta, .note { color: var(--color-text-muted); font-size: var(--text-sm); }
     .footer-nav {
       position: fixed;
       left: 0;
@@ -171,9 +163,34 @@
       </div>
     </header>
 
+    <section class="hero">
+      <div class="section-head">
+        <div>
+          <h2>Current pay view</h2>
+          <p class="muted" id="periodHeadline">Wednesday-to-Tuesday repeating periods.</p>
+        </div>
+        <div class="pill-row">
+          <button class="seg-btn" id="prevPeriodBtn" type="button">← Prev</button>
+          <button class="seg-btn active" data-view-period="14">2-week</button>
+          <button class="seg-btn" data-view-period="7">1-week</button>
+          <button class="seg-btn" id="nextPeriodBtn" type="button">Next →</button>
+        </div>
+      </div>
+      <div class="hero-grid">
+        <div class="metric"><div class="metric-label">Total worked hours</div><div class="metric-value" id="totalHours">0.00</div></div>
+        <div class="metric"><div class="metric-label">Drive time hours</div><div class="metric-value" id="driveHours">0.00</div></div>
+      </div>
+      <div class="stats-grid">
+        <div class="mini"><span>Install hours</span><div class="hours" id="installHours">0.00</div></div>
+        <div class="mini"><span>Effective install rate</span><div class="money" id="effectiveInstallRate">$0.00</div></div>
+        <div class="mini"><span>Install floor check</span><div class="money" id="installFloorAmount">$0.00</div></div>
+        <div class="mini"><span>Status</span><div class="money" id="installStatus">—</div></div>
+      </div>
+    </section>
+
     <section class="section" data-screen="add">
       <div class="card">
-        <div class="section-head"><div><h2>Add entry</h2><p class="muted">Track job totals, percentage pay, hourly work, and drive time.</p></div></div>
+        <div class="section-head"><div><h2>Add entry</h2><p class="muted">Track sales, commission, hourly work, and drive time.</p></div></div>
         <form id="entryForm" class="form-grid">
           <div class="split">
             <div><label for="workDate">Date</label><input id="workDate" type="date" required></div>
@@ -184,29 +201,12 @@
             <div><label for="driveMinutes">Drive minutes</label><input id="driveMinutes" type="number" min="0" step="1" value="0"></div>
           </div>
           <div class="split">
-            <div><label for="originPlace">Origin</label><select id="originPlace"></select></div>
-            <div><label for="destinationPlace">Destination</label><select id="destinationPlace"></select></div>
-          </div>
-          <div class="split">
-            <div><label for="destinationAddress">New place / address</label><input id="destinationAddress" type="text" placeholder="123 Main St, City, State"></div>
-            <div><label>&nbsp;</label><button type="button" id="savePlaceBtn" class="btn btn-secondary">Save place</button></div>
-          </div>
-          <div class="split">
-            <div><label for="bulkStops">Today's stops (one address per line)</label><textarea id="bulkStops" placeholder="123 Main St, Tallahassee, FL&#10;456 Oak Rd, Quincy, FL&#10;789 Market St, Midway, FL"></textarea></div>
-            <div><label>&nbsp;</label><button type="button" id="parseStopsBtn" class="btn btn-secondary">Add stops</button></div>
-          </div>
-          <div class="split">
-            <div><label>&nbsp;</label><button type="button" id="estimateDriveBtn" class="btn btn-secondary">Estimate drive time</button></div>
-            <div><label>&nbsp;</label><button type="button" id="useLastDestinationBtn" class="btn btn-secondary">Use last destination as next origin</button></div>
-          </div>
-          <div id="driveEstimateStatus" class="muted" style="margin-top:-8px;"></div>
-          <div class="split">
             <div><label for="startTime">Start time</label><input id="startTime" type="time" required></div>
             <div><label for="endTime">End time</label><input id="endTime" type="time" required></div>
           </div>
           <div class="split">
-            <div><label for="salesAmount">Job total</label><input id="salesAmount" type="number" min="0" step="0.01" placeholder="0.00"></div>
-            <div><label for="commissionPercent">Percentage rate</label><select id="commissionPercent"><option value="3">3%</option><option value="4">4%</option><option value="5" selected>5%</option><option value="6">6%</option></select></div>
+            <div><label for="salesAmount">Sales amount</label><input id="salesAmount" type="number" min="0" step="0.01" placeholder="0.00"></div>
+            <div><label for="commissionPercent">Commission %</label><select id="commissionPercent"><option value="3">3%</option><option value="4">4%</option><option value="5" selected>5%</option><option value="6">6%</option></select></div>
           </div>
           <div><label for="notes">Notes</label><textarea id="notes" placeholder="Anything useful for payroll or job tracking."></textarea></div>
           <div class="actions"><button type="submit" class="btn btn-primary">Save entry</button><button type="button" class="btn btn-secondary" id="clearFormBtn">Clear form</button></div>
@@ -217,7 +217,7 @@
 
     <section class="section hidden" data-screen="periods">
       <div class="card">
-        <div class="section-head"><div><h2>Pay settings</h2><p class="muted">Wednesday start, common hourly rate, overtime floor checks, and current-view summary.</p></div></div>
+        <div class="section-head"><div><h2>Pay settings</h2><p class="muted">Wednesday start, common hourly rate, and overtime floor checks.</p></div></div>
         <div class="form-grid">
           <div class="split">
             <div><label for="basePeriodStart">Repeating period start</label><input id="basePeriodStart" type="date"></div>
@@ -234,33 +234,8 @@
     </section>
 
     <section class="section hidden" data-screen="entries">
-      <div class="hero">
-        <div class="section-head">
-          <div>
-            <h2>Current pay view</h2>
-            <p class="muted" id="periodHeadline">Wednesday-to-Tuesday repeating periods.</p>
-          </div>
-          <div class="pill-row">
-            <button class="seg-btn" id="prevPeriodBtn" type="button">Prev</button>
-            <button class="seg-btn active" data-view-period="14">2-week</button>
-            <button class="seg-btn" data-view-period="7">1-week</button>
-            <button class="seg-btn" id="nextPeriodBtn" type="button">Next</button>
-          </div>
-        </div>
-        <div class="hero-grid">
-          <div class="metric"><div class="metric-label">Total worked hours</div><div class="metric-value" id="totalHours">0.00</div></div>
-          <div class="metric"><div class="metric-label">Drive time hours</div><div class="metric-value" id="driveHours">0.00</div></div>
-        </div>
-        <div class="stats-grid">
-          <div class="mini"><span>Install hours</span><div class="hours" id="installHours">0.00</div></div>
-          <div class="mini"><span>Effective hourly rate</span><div class="money" id="effectiveInstallRate">$0.00</div></div>
-          <div class="mini"><span>Current view percentage total</span><div class="money" id="installCommission">$0.00</div></div>
-          <div class="mini"><span>Floor minimum</span><div class="money" id="installFloorAmount">$0.00</div></div>
-          <div class="mini"><span>Status</span><div class="money" id="installStatus">—</div></div>
-        </div>
-      </div>
       <div class="card">
-        <div class="section-head"><div><h2>Work log</h2><p class="muted">Daily work details and current-view totals.</p></div></div>
+        <div class="section-head"><div><h2>Entries</h2><p class="muted">Per-entry effective rates and pay-period totals.</p></div></div>
         <div id="entryList" class="list"></div>
       </div>
     </section>
@@ -293,7 +268,7 @@
     <div class="footer-nav-inner">
       <button class="nav-btn active" data-target="add">Add</button>
       <button class="nav-btn" data-target="periods">Periods</button>
-      <button class="nav-btn" data-target="entries">Work log</button>
+      <button class="nav-btn" data-target="entries">Entries</button>
       <button class="nav-btn" data-target="share">Share</button>
     </div>
   </nav>
@@ -307,10 +282,7 @@
         commonHourlyRate: 20,
         installFloorRate: 30,
         overtimeMultiplier: 1.5,
-        categories: ['Install', 'Service', 'Shop'],
-        savedPlaces: [
-          { id: 'shop', label: 'Shop', address: 'Shop / base location' }
-        ]
+        categories: ['Install', 'Service', 'Shop']
       },
       selectedViewPeriod: 14,
       periodOffset: 0,
@@ -319,10 +291,10 @@
     const state = structuredClone(defaultState);
     const $ = id => document.getElementById(id);
     const els = {
-      workDate: $('workDate'), jobName: $('jobName'), category: $('category'), driveMinutes: $('driveMinutes'), originPlace: $('originPlace'), destinationPlace: $('destinationPlace'), destinationAddress: $('destinationAddress'), savePlaceBtn: $('savePlaceBtn'), bulkStops: $('bulkStops'), parseStopsBtn: $('parseStopsBtn'), estimateDriveBtn: $('estimateDriveBtn'), useLastDestinationBtn: $('useLastDestinationBtn'), driveEstimateStatus: $('driveEstimateStatus'), startTime: $('startTime'), endTime: $('endTime'),
+      workDate: $('workDate'), jobName: $('jobName'), category: $('category'), driveMinutes: $('driveMinutes'), startTime: $('startTime'), endTime: $('endTime'),
       salesAmount: $('salesAmount'), commissionPercent: $('commissionPercent'), notes: $('notes'), entryForm: $('entryForm'), clearFormBtn: $('clearFormBtn'), formError: $('formError'),
       basePeriodStart: $('basePeriodStart'), commonHourlyRate: $('commonHourlyRate'), installFloorRate: $('installFloorRate'), overtimeMultiplier: $('overtimeMultiplier'), saveSettingsBtn: $('saveSettingsBtn'),
-      totalHours: $('totalHours'), driveHours: $('driveHours'), installHours: $('installHours'), effectiveInstallRate: $('effectiveInstallRate'), installCommission: $('installCommission'), installFloorAmount: $('installFloorAmount'), installStatus: $('installStatus'),
+      totalHours: $('totalHours'), driveHours: $('driveHours'), installHours: $('installHours'), effectiveInstallRate: $('effectiveInstallRate'), installFloorAmount: $('installFloorAmount'), installStatus: $('installStatus'),
       periodHeadline: $('periodHeadline'), periodSummaryBox: $('periodSummaryBox'), entryList: $('entryList'), themeToggle: $('themeToggle'), exportCsvBtn: $('exportCsvBtn'), exportJsonBtn: $('exportJsonBtn'), exportSettingsBtn: $('exportSettingsBtn'), importBtn: $('importBtn'), importFile: $('importFile'), prevPeriodBtn: $('prevPeriodBtn'), nextPeriodBtn: $('nextPeriodBtn')
     };
     init();
@@ -331,33 +303,19 @@
       setDefaults();
       bindEvents();
       renderCategorySelect();
-      renderPlaceSelects();
       render();
       applyTheme(matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      persist();
     }
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
-        Object.assign(state, structuredClone(defaultState), parsed);
+        Object.assign(state, defaultState, parsed);
         state.settings = Object.assign({}, defaultState.settings, parsed.settings || {});
-        if (!Array.isArray(state.entries)) state.entries = [];
-        if (!Array.isArray(state.settings.categories) || !state.settings.categories.length) {
-          state.settings.categories = ['Install', 'Service', 'Shop'];
-        }
-      } catch (e) {
-        console.warn('Could not load saved app data.', e);
-      }
+      } catch (e) {}
     }
-    function persist() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      } catch (e) {
-        console.warn('Could not save app data.', e);
-      }
-    }
+    function persist() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
     function setDefaults() {
       const today = formatDateInput(new Date());
       if (!state.settings.basePeriodStart) state.settings.basePeriodStart = getNearestWednesday(today);
@@ -368,8 +326,6 @@
       els.workDate.value = today;
       els.startTime.value = '08:00';
       els.endTime.value = '17:00';
-      normalizePlaces();
-      renderPlaceSelects();
     }
     function bindEvents() {
       els.entryForm.addEventListener('submit', saveEntry);
@@ -385,10 +341,6 @@
       els.exportSettingsBtn.addEventListener('click', exportSettingsJson);
       els.importBtn.addEventListener('click', () => els.importFile.click());
       els.importFile.addEventListener('change', importJson);
-      els.savePlaceBtn.addEventListener('click', savePlaceFromInput);
-      els.parseStopsBtn.addEventListener('click', addBulkStops);
-      els.estimateDriveBtn.addEventListener('click', estimateDriveTime);
-      els.useLastDestinationBtn.addEventListener('click', useLastDestinationAsOrigin);
     }
     function renderCategorySelect() {
       const categories = Array.isArray(state.settings.categories) && state.settings.categories.length
@@ -406,182 +358,6 @@
         els.category.value = categories[0];
       }
     }
-
-    function normalizePlaces() {
-      const existing = Array.isArray(state.settings.savedPlaces) ? state.settings.savedPlaces : [];
-      const deduped = [];
-      const seen = new Set();
-      existing.forEach(place => {
-        if (!place || !place.address) return;
-        const address = String(place.address).trim();
-        if (!address) return;
-        const key = address.toLowerCase();
-        if (seen.has(key)) return;
-        seen.add(key);
-        deduped.push({ id: place.id || crypto.randomUUID(), label: (place.label || address).trim(), address });
-      });
-      if (!deduped.length) deduped.push({ id: 'shop', label: 'Shop', address: 'Shop / base location' });
-      state.settings.savedPlaces = deduped;
-    }
-
-    function renderPlaceSelects() {
-      normalizePlaces();
-      [els.originPlace, els.destinationPlace].forEach(select => {
-        if (!select) return;
-        const current = select.value;
-        select.innerHTML = '';
-        const empty = document.createElement('option');
-        empty.value = '';
-        empty.textContent = 'Select a place';
-        select.appendChild(empty);
-        state.settings.savedPlaces.forEach(place => {
-          const option = document.createElement('option');
-          option.value = place.id;
-          option.textContent = `${place.label} — ${place.address}`;
-          select.appendChild(option);
-        });
-        if (current && state.settings.savedPlaces.some(place => place.id === current)) select.value = current;
-      });
-      if (els.originPlace && !els.originPlace.value) {
-        const shop = state.settings.savedPlaces.find(place => place.label.toLowerCase() === 'shop');
-        if (shop) els.originPlace.value = shop.id;
-      }
-    }
-
-    function makePlace(address, label = '') {
-      const clean = String(address || '').trim();
-      if (!clean) return null;
-      return { id: crypto.randomUUID(), label: String(label || clean).trim(), address: clean };
-    }
-
-    function addPlace(address, label = '') {
-      normalizePlaces();
-      const clean = String(address || '').trim();
-      if (!clean) return null;
-      const existing = state.settings.savedPlaces.find(place => place.address.toLowerCase() === clean.toLowerCase());
-      if (existing) return existing;
-      const place = makePlace(clean, label);
-      if (!place) return null;
-      state.settings.savedPlaces.push(place);
-      persist();
-      renderPlaceSelects();
-      return place;
-    }
-
-    function savePlaceFromInput() {
-      const address = els.destinationAddress.value.trim();
-      if (!address) return setDriveEstimateStatus('Enter an address to save first.', true);
-      const place = addPlace(address);
-      if (!place) return setDriveEstimateStatus('Could not save that address.', true);
-      els.destinationPlace.value = place.id;
-      els.destinationAddress.value = '';
-      setDriveEstimateStatus(`Saved place: ${place.label}`);
-    }
-
-    function addBulkStops() {
-      const lines = (els.bulkStops.value || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-      if (!lines.length) return setDriveEstimateStatus('Paste one address per line first.', true);
-      let added = 0, lastPlace = null;
-      lines.forEach(line => { const before = state.settings.savedPlaces.length; const place = addPlace(line); if (place) lastPlace = place; if (state.settings.savedPlaces.length > before) added += 1; });
-      if (lastPlace) els.destinationPlace.value = lastPlace.id;
-      els.bulkStops.value = '';
-      setDriveEstimateStatus(`Added ${added} new stop${added === 1 ? '' : 's'}.`);
-    }
-
-    function getPlaceById(id) { return (state.settings.savedPlaces || []).find(place => place.id === id) || null; }
-
-    async function geocodeAddress(address) {
-      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(address)}`;
-      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-      if (!res.ok) throw new Error('Address lookup failed.');
-      const data = await res.json();
-      if (!Array.isArray(data) || !data.length) throw new Error('Address not found.');
-      return { lat: Number(data[0].lat), lon: Number(data[0].lon) };
-    }
-
-    async function getDriveMinutesBetween(originLat, originLon, destLat, destLon) {
-      const url = `https://router.project-osrm.org/route/v1/driving/${originLon},${originLat};${destLon},${destLat}?overview=false`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Route lookup failed.');
-      const data = await res.json();
-      const route = data && data.routes && data.routes[0];
-      if (!route || typeof route.duration !== 'number') throw new Error('No driving route found.');
-      return Math.max(0, Math.round(route.duration / 60));
-    }
-
-    async function estimateDriveTime() {
-      const origin = getPlaceById(els.originPlace.value);
-      const destination = getPlaceById(els.destinationPlace.value) || (els.destinationAddress.value.trim() ? addPlace(els.destinationAddress.value.trim()) : null);
-      if (!origin || !destination) return setDriveEstimateStatus('Pick both an origin and destination.', true);
-      const originalLabel = els.estimateDriveBtn.textContent;
-      els.estimateDriveBtn.disabled = true;
-      els.estimateDriveBtn.textContent = 'Estimating...';
-      setDriveEstimateStatus('Looking up route...');
-      try {
-        const [originCoords, destCoords] = await Promise.all([geocodeAddress(origin.address), geocodeAddress(destination.address)]);
-        const minutes = await getDriveMinutesBetween(originCoords.lat, originCoords.lon, destCoords.lat, destCoords.lon);
-        els.driveMinutes.value = String(minutes);
-        setDriveEstimateStatus(`Estimated ${minutes} min from ${origin.label} to ${destination.label}.`);
-      } catch (error) {
-        setDriveEstimateStatus(error && error.message ? error.message : 'Could not estimate drive time.', true);
-      } finally {
-        els.estimateDriveBtn.disabled = false;
-        els.estimateDriveBtn.textContent = originalLabel;
-      }
-    }
-
-    function useLastDestinationAsOrigin() {
-      if (!els.destinationPlace.value) return setDriveEstimateStatus('Choose a destination first.', true);
-      els.originPlace.value = els.destinationPlace.value;
-      setDriveEstimateStatus('Moved destination to origin for the next trip.');
-    }
-    function setDriveEstimateStatus(message, isError = false) {
-      if (!els.driveEstimateStatus) return;
-      els.driveEstimateStatus.textContent = message || '';
-      els.driveEstimateStatus.style.color = isError ? 'var(--color-error)' : 'var(--color-text-muted)';
-    }
-
-    function getCurrentPositionAsync() {
-      return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-          reject(new Error('Geolocation is not supported on this device.'));
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 300000
-        });
-      });
-    }
-
-    async function geocodeAddress(address) {
-      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(address)}`;
-      const res = await fetch(url, {
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-      if (!res.ok) throw new Error('Address lookup failed.');
-      const data = await res.json();
-      if (!Array.isArray(data) || !data.length) throw new Error('Address not found.');
-      return {
-        lat: Number(data[0].lat),
-        lon: Number(data[0].lon),
-        label: data[0].display_name || address
-      };
-    }
-
-    async function getDriveEstimateMinutes(originLat, originLon, destLat, destLon) {
-      const url = `https://router.project-osrm.org/route/v1/driving/${originLon},${originLat};${destLon},${destLat}?overview=false`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Route lookup failed.');
-      const data = await res.json();
-      const route = data && data.routes && data.routes[0];
-      if (!route || typeof route.duration !== 'number') throw new Error('No driving route found.');
-      return Math.max(0, Math.round(route.duration / 60));
-    }
-
     function saveSettings() {
       state.settings.basePeriodStart = els.basePeriodStart.value || state.settings.basePeriodStart;
       state.settings.commonHourlyRate = Number(els.commonHourlyRate.value || 0);
@@ -596,20 +372,12 @@
       const category = els.category.value;
       const salesAmount = Number(els.salesAmount.value || 0);
       const commissionPercent = Number(els.commissionPercent.value || 0);
-      const originPlace = getPlaceById(els.originPlace.value);
-      const destinationPlace = getPlaceById(els.destinationPlace.value);
       const entry = {
         id: state.editingId || crypto.randomUUID(),
         date: els.workDate.value,
         jobName: els.jobName.value.trim(),
         category,
         driveMinutes: Number(els.driveMinutes.value || 0),
-        originPlaceId: originPlace ? originPlace.id : '',
-        originLabel: originPlace ? originPlace.label : '',
-        originAddress: originPlace ? originPlace.address : '',
-        destinationPlaceId: destinationPlace ? destinationPlace.id : '',
-        destinationLabel: destinationPlace ? destinationPlace.label : '',
-        destinationAddress: destinationPlace ? destinationPlace.address : '',
         startTime: els.startTime.value,
         endTime: els.endTime.value,
         hours,
@@ -643,11 +411,10 @@
       els.driveHours.textContent = (summary.driveMinutes / 60).toFixed(2);
       els.installHours.textContent = summary.installHours.toFixed(2);
       els.effectiveInstallRate.textContent = money(summary.installHours ? summary.installCommission / summary.installHours : 0);
-      els.installCommission.textContent = money(summary.installCommission);
       els.installFloorAmount.textContent = money(summary.installFloorAmount);
       els.installStatus.textContent = summary.installHours ? (summary.installCommission >= summary.installFloorAmount ? 'Meets floor' : 'Below floor') : '—';
       els.installStatus.className = 'money ' + (summary.installHours ? (summary.installCommission >= summary.installFloorAmount ? 'status-good' : 'status-warn') : '');
-      els.periodSummaryBox.innerHTML = `<strong>Current range:</strong> ${prettyDate(range.start)} to ${prettyDate(range.end)}<br><strong>Total hours:</strong> ${summary.totalHours.toFixed(2)}<br><strong>Current view percentage total:</strong> ${money(summary.installCommission)}<br><strong>Floor minimum:</strong> ${money(summary.installFloorAmount)}<br><strong>Common non-install hourly rate:</strong> ${money(state.settings.commonHourlyRate)}<br><strong>Overtime multiplier:</strong> ${state.settings.overtimeMultiplier.toFixed(2)}x`;
+      els.periodSummaryBox.innerHTML = `<strong>Current range:</strong> ${prettyDate(range.start)} to ${prettyDate(range.end)}<br><strong>Total hours:</strong> ${summary.totalHours.toFixed(2)}<br><strong>Install commission:</strong> ${money(summary.installCommission)}<br><strong>Install floor requirement:</strong> ${money(summary.installFloorAmount)}<br><strong>Common non-install hourly rate:</strong> ${money(state.settings.commonHourlyRate)}<br><strong>Overtime multiplier:</strong> ${state.settings.overtimeMultiplier.toFixed(2)}x`;
       renderEntries(items);
       updatePeriodButtons();
     }
@@ -655,143 +422,48 @@
       let totalHours = 0, driveMinutes = 0, installHours = 0, installCommission = 0, installFloorAmount = 0;
       const floorBase = Number(state.settings.installFloorRate || 30);
       const overtimeFloor = floorBase * Number(state.settings.overtimeMultiplier || 1.5);
-      const weeklyHours = new Map();
-
-      function getWorkweekStart(iso) {
-        const d = new Date(iso + 'T12:00:00');
-        const day = d.getDay();
-        const diffToWednesday = (day - 3 + 7) % 7;
-        d.setDate(d.getDate() - diffToWednesday);
-        return formatDateInput(d);
-      }
-
       items.forEach(entry => {
-        totalHours += Number(entry.hours || 0);
+        const startTotal = totalHours;
+        totalHours += entry.hours;
         driveMinutes += Number(entry.driveMinutes || 0);
-
         if (entry.category === 'Install') {
-          installHours += Number(entry.hours || 0);
-          installCommission += getAllocatedCommissionShare(entry);
-
-          const weekKey = getWorkweekStart(entry.date);
-          const weekRunningHours = weeklyHours.get(weekKey) || 0;
-
-          const entryHours = Number(entry.hours || 0);
-          const pre40Left = Math.max(0, 40 - weekRunningHours);
-          const pre40Hours = Math.min(entryHours, pre40Left);
-          const post40Hours = Math.max(0, entryHours - pre40Hours);
-
+          installHours += entry.hours;
+          installCommission += Number(entry.commissionShare || 0);
+          const pre40Left = Math.max(0, 40 - startTotal);
+          const pre40Hours = Math.min(entry.hours, pre40Left);
+          const post40Hours = Math.max(0, entry.hours - pre40Hours);
           installFloorAmount += (pre40Hours * floorBase) + (post40Hours * overtimeFloor);
-          weeklyHours.set(weekKey, weekRunningHours + entryHours);
         }
       });
-
-      return {
-        totalHours,
-        driveMinutes,
-        installHours,
-        installCommission: round2(installCommission),
-        installFloorAmount: round2(installFloorAmount)
-      };
+      return { totalHours, driveMinutes, installHours, installCommission, installFloorAmount: round2(installFloorAmount) };
     }
-
-    function normalizeJobName(name) {
-      return String(name || '').trim().toLowerCase();
-    }
-
-    function getJobGroupEntries(jobName) {
-      const key = normalizeJobName(jobName);
-      if (!key) return [];
-      return state.entries.filter(e => e.category === 'Install' && normalizeJobName(e.jobName) === key);
-    }
-
-    function getJobGroupTotals(jobName) {
-      const entries = getJobGroupEntries(jobName);
-      const totalHours = entries.reduce((sum, e) => sum + Number(e.hours || 0), 0);
-      const salesValues = entries
-        .map(e => round2(Number(e.salesAmount || 0)))
-        .filter(v => v > 0);
-      const uniqueSalesValues = [...new Set(salesValues)];
-      const masterSalesAmount = round2(
-        uniqueSalesValues.length === 1
-          ? uniqueSalesValues[0]
-          : salesValues.reduce((sum, v) => sum + v, 0)
-      );
-      const commissionPercent = entries.reduce((max, e) => Math.max(max, Number(e.commissionPercent || 0)), 0);
-      return {
-        entries,
-        totalHours,
-        masterSalesAmount,
-        commissionPercent
-      };
-    }
-
-    function getAllocatedSalesAmount(entry) {
-      if (!entry || entry.category !== 'Install') return Number(entry?.salesAmount || 0);
-      const group = getJobGroupTotals(entry.jobName);
-      const linkedDays = group.entries.length;
-      if (!group.masterSalesAmount || !linkedDays) return Number(entry.salesAmount || 0);
-      return round2(group.masterSalesAmount / linkedDays);
-    }
-
-    function getAllocatedCommissionShare(entry) {
-      if (!entry || entry.category !== 'Install') return Number(entry.commissionShare || 0);
-      const allocatedSales = getAllocatedSalesAmount(entry);
-      const percent = Number(entry.commissionPercent || getJobGroupTotals(entry.jobName).commissionPercent || 0);
-      return round2(allocatedSales * (percent / 100));
-    }
-
     function renderEntries(items) {
-      if (!items.length) { els.entryList.innerHTML = '<div class="empty">No work log entries in the current period yet.</div>'; return; }
+      if (!items.length) { els.entryList.innerHTML = '<div class="empty">No entries in the current period yet.</div>'; return; }
       els.entryList.innerHTML = '';
-      const weeklyHours = new Map();
-
-      function getWorkweekStart(iso) {
-        const d = new Date(iso + 'T12:00:00');
-        const day = d.getDay();
-        const diffToWednesday = (day - 3 + 7) % 7;
-        d.setDate(d.getDate() - diffToWednesday);
-        return formatDateInput(d);
-      }
+      let runningHours = 0;
       items.forEach(entry => {
-        const weekKey = getWorkweekStart(entry.date);
-        const startTotal = weeklyHours.get(weekKey) || 0;
-        const entryHours = Number(entry.hours || 0);
-        weeklyHours.set(weekKey, startTotal + entryHours);
+        const startTotal = runningHours;
+        runningHours += entry.hours;
         const div = document.createElement('article');
         div.className = 'entry';
         let extra = '';
         if (entry.category === 'Install') {
           const pre40Left = Math.max(0, 40 - startTotal);
-          const pre40Hours = Math.min(entryHours, pre40Left);
-          const post40Hours = Math.max(0, entryHours - pre40Hours);
+          const pre40Hours = Math.min(entry.hours, pre40Left);
+          const post40Hours = Math.max(0, entry.hours - pre40Hours);
           const floorBase = Number(state.settings.installFloorRate || 30);
           const overtimeFloor = floorBase * Number(state.settings.overtimeMultiplier || 1.5);
           const floorAmount = round2((pre40Hours * floorBase) + (post40Hours * overtimeFloor));
-          const allocatedJobTotal = getAllocatedSalesAmount(entry);
-          const dayPercentageTotal = getAllocatedCommissionShare(entry);
-          const effectiveRate = entryHours ? round2(dayPercentageTotal / entryHours) : 0;
-          const jobGroup = getJobGroupTotals(entry.jobName);
-          extra = `
-            <div class="entry-meta"><strong>Percentage rate:</strong> ${Number(entry.commissionPercent || jobGroup.commissionPercent || 0)}%</div>
-            <div class="entry-meta"><strong>Job total:</strong> ${money(jobGroup.masterSalesAmount || Number(entry.salesAmount || 0))}</div>
-            <div class="entry-meta"><strong>Actual payout:</strong> ${money(dayPercentageTotal)}</div>
-            ${jobGroup.entries.length > 1 ? `<div class="entry-meta"><strong>Allocated job total:</strong> ${money(allocatedJobTotal)} · <strong>Linked days:</strong> ${jobGroup.entries.length}</div>` : ''}
-            <div class="entry-meta"><strong>Effective hourly rate:</strong> ${money(effectiveRate)}</div>
-            <div class="entry-meta"><strong>Floor minimum:</strong> ${money(floorAmount)}</div>
-            <div class="entry-meta"><strong>Pre-40:</strong> ${pre40Hours.toFixed(2)}h · <strong>Post-40:</strong> ${post40Hours.toFixed(2)}h</div>
-          `;
+          const effectiveRate = entry.hours ? round2(entry.commissionShare / entry.hours) : 0;
+          extra = `<div class="entry-meta">Effective rate: ${money(effectiveRate)} · Floor needed: ${money(floorAmount)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
         } else {
           const pre40Left = Math.max(0, 40 - startTotal);
-          const pre40Hours = Math.min(entryHours, pre40Left);
-          const post40Hours = Math.max(0, entryHours - pre40Hours);
+          const pre40Hours = Math.min(entry.hours, pre40Left);
+          const post40Hours = Math.max(0, entry.hours - pre40Hours);
           const pay = round2((pre40Hours * state.settings.commonHourlyRate) + (post40Hours * state.settings.commonHourlyRate * state.settings.overtimeMultiplier));
-          extra = `
-            <div class="entry-meta"><strong>Hourly pay:</strong> ${money(pay)}</div>
-            <div class="entry-meta"><strong>Pre-40:</strong> ${pre40Hours.toFixed(2)}h · <strong>Post-40:</strong> ${post40Hours.toFixed(2)}h</div>
-          `;
+          extra = `<div class="entry-meta">Hourly pay: ${money(pay)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
         }
-        div.innerHTML = `<div class="entry-top"><div><strong>${escapeHtml(entry.jobName)}</strong><div class="entry-meta">${prettyDate(entry.date)} · ${escapeHtml(entry.category)}</div></div><div class="hours">${entry.hours.toFixed(2)} hrs</div></div><div class="entry-bottom"><div class="entry-body"><div class="entry-meta"><strong>Time:</strong> ${entry.startTime} - ${entry.endTime}</div><div class="entry-meta"><strong>Drive:</strong> ${entry.driveMinutes} min</div>${extra}${entry.notes ? `<div class="note"><strong>Notes:</strong> ${escapeHtml(entry.notes)}</div>` : ''}</div><div class="stack"><button class="btn btn-secondary" data-edit="${entry.id}">Edit</button><button class="btn btn-danger" data-delete="${entry.id}">Delete</button></div></div>`;
+        div.innerHTML = `<div class="entry-top"><div><strong>${escapeHtml(entry.jobName)}</strong><div class="entry-meta">${prettyDate(entry.date)} · ${escapeHtml(entry.category)}</div></div><div class="hours">${entry.hours.toFixed(2)} hrs</div></div><div class="entry-bottom"><div><div class="entry-meta">${entry.startTime} - ${entry.endTime} · Drive ${entry.driveMinutes} min</div>${extra}${entry.notes ? `<div class="note">${escapeHtml(entry.notes)}</div>` : ''}</div><div class="stack"><button class="btn btn-secondary" data-edit="${entry.id}">Edit</button><button class="btn btn-danger" data-delete="${entry.id}">Delete</button></div></div>`;
         div.querySelector('[data-edit]').addEventListener('click', () => loadEntry(entry.id));
         div.querySelector('[data-delete]').addEventListener('click', () => deleteEntry(entry.id));
         els.entryList.appendChild(div);
@@ -812,7 +484,7 @@
     }
     function exportCurrentPeriodCsv() {
       const items = computePeriodItems(14);
-      const rows = [['Date','Job Name','Category','Start','End','Hours','Drive Minutes','Job Total','Percentage Rate','Day Percentage Total','Notes']];
+      const rows = [['Date','Job Name','Category','Start','End','Hours','Drive Minutes','Sales Amount','Commission Percent','Commission Share','Notes']];
       items.forEach(e => rows.push([e.date,e.jobName,e.category,e.startTime,e.endTime,e.hours,e.driveMinutes,e.salesAmount,e.commissionPercent,e.commissionShare,(e.notes||'').replace(/\n/g,' ')]));
       const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\n');
       downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'cbd-installer-tracker-2-week-export.csv');

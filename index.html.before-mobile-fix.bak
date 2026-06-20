@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="CBD Installer Tracker" />
+  <meta name="theme-color" content="#8b1e2d" />
+  <title>CBD Installer Tracker</title>
+  <link rel="manifest" href="manifest.json" />
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+  <style>
+    :root, [data-theme="light"] {
+      --text-xs: clamp(0.8rem, 0.76rem + 0.2vw, 0.92rem);
+      --text-sm: clamp(0.96rem, 0.9rem + 0.3vw, 1.05rem);
+      --text-base: clamp(1.05rem, 1rem + 0.28vw, 1.16rem);
+      --text-lg: clamp(1.2rem, 1.05rem + 0.72vw, 1.55rem);
+      --text-xl: clamp(1.55rem, 1.25rem + 1vw, 2rem);
+      --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem;
+      --color-bg: #f8f4ef; --color-surface: #fffaf7; --color-surface-2: #fffdfb; --color-surface-offset: #f2e7df; --color-border: #dfcfc4; --color-divider: #e7d9cf;
+      --color-text: #2f211c; --color-text-muted: #6e625d; --color-text-faint: #9c9088; --color-text-inverse: #fff8f4;
+      --color-primary: #8b1e2d; --color-primary-hover: #671722; --color-primary-highlight: #f4d9de; --color-accent: #c9a46a; --color-success: #437a22; --color-warning: #9a5a1a;
+      --radius-sm: 0.5rem; --radius-md: 0.8rem; --radius-lg: 1rem; --radius-xl: 1.2rem; --radius-full: 9999px;
+      --shadow-sm: 0 1px 3px rgba(47,33,28,.08); --shadow-md: 0 10px 28px rgba(47,33,28,.1);
+      --font-body: 'Satoshi','Inter',sans-serif; --transition: 180ms cubic-bezier(.16,1,.3,1);
+    }
+    [data-theme="dark"] {
+      --color-bg: #1c1412; --color-surface: #251c19; --color-surface-2: #2b211e; --color-surface-offset: #332825; --color-border: #4a3933; --color-divider: #3b2e2a;
+      --color-text: #f2e8e1; --color-text-muted: #d1c1b7; --color-text-faint: #a58f82; --color-text-inverse: #1c1412;
+      --color-primary: #d45669; --color-primary-hover: #ef8d9a; --color-primary-highlight: #47262d; --color-accent: #d2b47c; --color-success: #88c569; --color-warning: #d5964f;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.22); --shadow-md: 0 10px 28px rgba(0,0,0,.28);
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: none; text-size-adjust: none; }
+    body { margin: 0; min-height: 100dvh; font-family: var(--font-body); font-size: var(--text-base); line-height: 1.5; color: var(--color-text); background: linear-gradient(180deg, var(--color-bg), var(--color-surface-offset)); }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { border: none; background: none; cursor: pointer; }
+    input, select, textarea { width: 100%; background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1rem; }
+    textarea { min-height: 92px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+    .app { max-width: 920px; margin: 0 auto; padding: max(env(safe-area-inset-top), 0px) 1rem calc(6.5rem + env(safe-area-inset-bottom)); }
+    .topbar { position: sticky; top: 0; z-index: 20; margin: 0 -1rem; padding: .85rem 1rem; background: color-mix(in srgb, var(--color-bg) 90%, transparent); backdrop-filter: blur(15px); border-bottom: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent); }
+    .brand { display: flex; justify-content: space-between; gap: .8rem; align-items: center; }
+    .brand-left { display: flex; gap: .8rem; align-items: center; }
+    .logo { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(180deg, var(--color-primary), var(--color-primary-hover)); color: var(--color-text-inverse); display: grid; place-items: center; box-shadow: var(--shadow-sm); }
+    .logo svg { width: 28px; height: 28px; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: var(--text-xl); line-height: 1.08; }
+    h2 { font-size: var(--text-lg); margin-bottom: .3rem; }
+    .subtitle, .muted { color: var(--color-text-muted); }
+    .icon-btn, .seg-btn, .nav-btn { min-height: 46px; }
+    .icon-btn { min-width: 46px; border-radius: var(--radius-full); border: 1px solid var(--color-border); background: var(--color-surface); }
+    .hero, .card { margin-top: 1rem; background: var(--color-surface); border: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); padding: 1rem; }
+    .hero-grid, .stats-grid, .split { display: grid; gap: .75rem; }
+    .hero-grid { grid-template-columns: repeat(2, 1fr); }
+    .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    .metric, .mini, .period-box, .entry { background: var(--color-surface-2); border: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent); border-radius: 1rem; padding: .95rem; }
+    .metric-label, .mini span, .tiny { color: var(--color-text-muted); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .05em; }
+    .metric-value, .money, .hours { margin-top: .25rem; font-weight: 700; font-variant-numeric: tabular-nums lining-nums; }
+    .money, .hours { font-size: 1.1rem; }
+    .section { margin-top: 1rem; }
+    .section-head { display: flex; justify-content: space-between; gap: .75rem; align-items: flex-start; margin-bottom: .8rem; }
+    .form-grid { display: grid; gap: .8rem; }
+    .split { grid-template-columns: 1fr 1fr; }
+    label { display: block; margin-bottom: .4rem; font-size: var(--text-sm); font-weight: 600; }
+    .actions, .stack, .pill-row { display: flex; gap: .6rem; flex-wrap: wrap; }
+    .seg-btn { padding: .8rem .95rem; border-radius: var(--radius-full); border: 1px solid var(--color-border); background: var(--color-surface-2); font-size: var(--text-sm); }
+    .seg-btn.active { background: var(--color-primary-highlight); border-color: var(--color-primary); color: var(--color-primary-hover); font-weight: 700; }
+    .btn { min-height: 50px; padding: .95rem 1.05rem; border-radius: var(--radius-md); font-weight: 700; }
+    .btn-primary { background: var(--color-primary); color: var(--color-text-inverse); }
+    .btn-secondary { background: var(--color-surface-2); border: 1px solid var(--color-border); }
+    .btn-danger { background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface-2)); border: 1px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border)); }
+    .list { display: grid; gap: .75rem; }
+    .entry-top, .entry-bottom { display: flex; justify-content: space-between; gap: .75rem; }
+    .entry-meta, .note { color: var(--color-text-muted); font-size: var(--text-sm); }
+    .footer-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: .7rem 1rem calc(.7rem + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--color-bg) 92%, transparent); backdrop-filter: blur(16px); border-top: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent); }
+    .footer-nav-inner { max-width: 920px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
+    .nav-btn { border-radius: 1rem; color: var(--color-text-muted); font-size: var(--text-xs); font-weight: 700; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: .55rem; }
+    .nav-btn.active { background: var(--color-primary-highlight); color: var(--color-primary-hover); }
+    .hidden { display: none !important; }
+    .empty { padding: 1.2rem; border: 1px dashed var(--color-border); border-radius: 1rem; text-align: center; color: var(--color-text-muted); background: var(--color-surface-2); }
+    .help { margin-top: .35rem; color: var(--color-text-muted); font-size: var(--text-xs); }
+    .banner { margin-top: .9rem; padding: .9rem 1rem; border-radius: 1rem; background: linear-gradient(135deg, var(--color-primary-highlight), color-mix(in srgb, var(--color-accent) 30%, var(--color-surface))); color: var(--color-primary-hover); font-size: var(--text-sm); }
+    .install-steps { padding-left: 1.2rem; margin: .5rem 0 0; color: var(--color-text); }
+    .install-steps li { margin: .35rem 0; }
+    .status-good { color: var(--color-success); }
+    .status-warn { color: var(--color-warning); }
+    @media (max-width: 700px) {
+      .hero-grid, .stats-grid, .split, .footer-nav-inner { grid-template-columns: 1fr; }
+      .entry-top, .entry-bottom, .section-head { flex-direction: column; align-items: flex-start; }
+      .actions .btn, .stack .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-left">
+          <div class="logo" aria-label="CBD Installer Tracker logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 20V7l4-3 4 3v13"></path>
+              <path d="M12 20V10l4-3 4 3v10"></path>
+            </svg>
+          </div>
+          <div>
+            <h1>CBD Installer Tracker</h1>
+            <p class="subtitle">Personal install, service, and shop pay tracker for iPhone.</p>
+          </div>
+        </div>
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">☾</button>
+      </div>
+      <div class="banner">Install on iPhone with Safari: Share → Add to Home Screen → turn on Open as Web App → Add.</div>
+    </header>
+
+    <section class="hero">
+      <div class="section-head">
+        <div>
+          <h2>Current pay view</h2>
+          <p class="muted" id="periodHeadline">Wednesday-to-Tuesday repeating periods.</p>
+        </div>
+        <div class="pill-row">
+          <button class="seg-btn active" data-view-period="14">2-week</button>
+          <button class="seg-btn" data-view-period="7">1-week</button>
+        </div>
+      </div>
+      <div class="hero-grid">
+        <div class="metric"><div class="metric-label">Total worked hours</div><div class="metric-value" id="totalHours">0.00</div></div>
+        <div class="metric"><div class="metric-label">Drive time hours</div><div class="metric-value" id="driveHours">0.00</div></div>
+      </div>
+      <div class="stats-grid">
+        <div class="mini"><span>Install hours</span><div class="hours" id="installHours">0.00</div></div>
+        <div class="mini"><span>Effective install rate</span><div class="money" id="effectiveInstallRate">$0.00</div></div>
+        <div class="mini"><span>Install floor check</span><div class="money" id="installFloorAmount">$0.00</div></div>
+        <div class="mini"><span>Status</span><div class="money" id="installStatus">—</div></div>
+      </div>
+    </section>
+
+    <section class="section" data-screen="add">
+      <div class="card">
+        <div class="section-head"><div><h2>Add entry</h2><p class="muted">Track sales, commission, hourly work, and drive time.</p></div></div>
+        <form id="entryForm" class="form-grid">
+          <div class="split">
+            <div><label for="workDate">Date</label><input id="workDate" type="date" required></div>
+            <div><label for="jobName">Job name</label><input id="jobName" type="text" placeholder="Customer or site" required></div>
+          </div>
+          <div class="split">
+            <div><label for="category">Category</label><select id="category"></select></div>
+            <div><label for="driveMinutes">Drive minutes</label><input id="driveMinutes" type="number" min="0" step="1" value="0"></div>
+          </div>
+          <div class="split">
+            <div><label for="startTime">Start time</label><input id="startTime" type="time" required></div>
+            <div><label for="endTime">End time</label><input id="endTime" type="time" required></div>
+          </div>
+          <div class="split">
+            <div><label for="salesAmount">Sales amount</label><input id="salesAmount" type="number" min="0" step="0.01" placeholder="0.00"></div>
+            <div><label for="commissionPercent">Commission %</label><select id="commissionPercent"><option value="3">3%</option><option value="4">4%</option><option value="5" selected>5%</option><option value="6">6%</option></select></div>
+          </div>
+          <div><label for="notes">Notes</label><textarea id="notes" placeholder="Anything useful for payroll or job tracking."></textarea></div>
+          <div class="actions"><button type="submit" class="btn btn-primary">Save entry</button><button type="button" class="btn btn-secondary" id="clearFormBtn">Clear form</button></div>
+          <p class="muted hidden" id="formError"></p>
+        </form>
+      </div>
+    </section>
+
+    <section class="section hidden" data-screen="periods">
+      <div class="card">
+        <div class="section-head"><div><h2>Pay settings</h2><p class="muted">Wednesday start, common hourly rate, and overtime floor checks.</p></div></div>
+        <div class="form-grid">
+          <div class="split">
+            <div><label for="basePeriodStart">Repeating period start</label><input id="basePeriodStart" type="date"></div>
+            <div><label for="commonHourlyRate">Common non-install hourly rate</label><input id="commonHourlyRate" type="number" min="0" step="0.01" value="20"></div>
+          </div>
+          <div class="split">
+            <div><label for="installFloorRate">Install floor rate</label><input id="installFloorRate" type="number" min="0" step="0.01" value="30"></div>
+            <div><label for="overtimeMultiplier">Overtime multiplier</label><input id="overtimeMultiplier" type="number" min="1" step="0.01" value="1.5"></div>
+          </div>
+          <div class="actions"><button class="btn btn-primary" type="button" id="saveSettingsBtn">Save settings</button></div>
+          <div class="period-box" id="periodSummaryBox"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section hidden" data-screen="entries">
+      <div class="card">
+        <div class="section-head"><div><h2>Entries</h2><p class="muted">Per-entry effective rates and pay-period totals.</p></div></div>
+        <div id="entryList" class="list"></div>
+      </div>
+    </section>
+
+    <section class="section hidden" data-screen="share">
+      <div class="card">
+        <div class="section-head"><div><h2>Export & coworker setup</h2><p class="muted">Export 2-week CSVs, back up data, or share clean settings.</p></div></div>
+        <div class="actions">
+          <button class="btn btn-primary" id="exportCsvBtn" type="button">Export current 2-week CSV</button>
+          <button class="btn btn-secondary" id="exportJsonBtn" type="button">Export full backup JSON</button>
+          <button class="btn btn-secondary" id="exportSettingsBtn" type="button">Export clean settings JSON</button>
+          <button class="btn btn-secondary" id="importBtn" type="button">Import backup/settings</button>
+          <input id="importFile" type="file" accept="application/json" class="hidden">
+        </div>
+        <div class="period-box">
+          <strong>iPhone install</strong>
+          <ol class="install-steps">
+            <li>Open your GitHub Pages link in Safari.</li>
+            <li>Tap Share.</li>
+            <li>Tap Add to Home Screen.</li>
+            <li>Turn on Open as Web App.</li>
+            <li>Tap Add.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <nav class="footer-nav" aria-label="App navigation">
+    <div class="footer-nav-inner">
+      <button class="nav-btn active" data-target="add">Add</button>
+      <button class="nav-btn" data-target="periods">Periods</button>
+      <button class="nav-btn" data-target="entries">Entries</button>
+      <button class="nav-btn" data-target="share">Share</button>
+    </div>
+  </nav>
+
+  <script>
+    const STORAGE_KEY = 'cbd-installer-tracker-v1';
+    const defaultState = {
+      entries: [],
+      settings: {
+        basePeriodStart: '',
+        commonHourlyRate: 20,
+        installFloorRate: 30,
+        overtimeMultiplier: 1.5,
+        categories: ['Install', 'Service', 'Shop']
+      },
+      selectedViewPeriod: 14,
+      editingId: null
+    };
+    const state = structuredClone(defaultState);
+    const $ = id => document.getElementById(id);
+    const els = {
+      workDate: $('workDate'), jobName: $('jobName'), category: $('category'), driveMinutes: $('driveMinutes'), startTime: $('startTime'), endTime: $('endTime'),
+      salesAmount: $('salesAmount'), commissionPercent: $('commissionPercent'), notes: $('notes'), entryForm: $('entryForm'), clearFormBtn: $('clearFormBtn'), formError: $('formError'),
+      basePeriodStart: $('basePeriodStart'), commonHourlyRate: $('commonHourlyRate'), installFloorRate: $('installFloorRate'), overtimeMultiplier: $('overtimeMultiplier'), saveSettingsBtn: $('saveSettingsBtn'),
+      totalHours: $('totalHours'), driveHours: $('driveHours'), installHours: $('installHours'), effectiveInstallRate: $('effectiveInstallRate'), installFloorAmount: $('installFloorAmount'), installStatus: $('installStatus'),
+      periodHeadline: $('periodHeadline'), periodSummaryBox: $('periodSummaryBox'), entryList: $('entryList'), themeToggle: $('themeToggle'), exportCsvBtn: $('exportCsvBtn'), exportJsonBtn: $('exportJsonBtn'), exportSettingsBtn: $('exportSettingsBtn'), importBtn: $('importBtn'), importFile: $('importFile')
+    };
+    init();
+    function init() {
+      loadState();
+      setDefaults();
+      bindEvents();
+      renderCategorySelect();
+      render();
+      applyTheme(matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    }
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        Object.assign(state, defaultState, parsed);
+        state.settings = Object.assign({}, defaultState.settings, parsed.settings || {});
+      } catch (e) {}
+    }
+    function persist() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    function setDefaults() {
+      const today = formatDateInput(new Date());
+      if (!state.settings.basePeriodStart) state.settings.basePeriodStart = getNearestWednesday(today);
+      els.basePeriodStart.value = state.settings.basePeriodStart;
+      els.commonHourlyRate.value = state.settings.commonHourlyRate;
+      els.installFloorRate.value = state.settings.installFloorRate;
+      els.overtimeMultiplier.value = state.settings.overtimeMultiplier;
+      els.workDate.value = today;
+      els.startTime.value = '08:00';
+      els.endTime.value = '17:00';
+    }
+    function bindEvents() {
+      els.entryForm.addEventListener('submit', saveEntry);
+      els.clearFormBtn.addEventListener('click', resetForm);
+      els.saveSettingsBtn.addEventListener('click', saveSettings);
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', () => switchScreen(btn.dataset.target)));
+      document.querySelectorAll('[data-view-period]').forEach(btn => btn.addEventListener('click', () => { state.selectedViewPeriod = Number(btn.dataset.viewPeriod); updatePeriodButtons(); render(); persist(); }));
+      els.themeToggle.addEventListener('click', () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+      els.exportCsvBtn.addEventListener('click', exportCurrentPeriodCsv);
+      els.exportJsonBtn.addEventListener('click', exportBackupJson);
+      els.exportSettingsBtn.addEventListener('click', exportSettingsJson);
+      els.importBtn.addEventListener('click', () => els.importFile.click());
+      els.importFile.addEventListener('change', importJson);
+    }
+    function renderCategorySelect() {
+      els.category.innerHTML = '';
+      state.settings.categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat; option.textContent = cat; els.category.appendChild(option);
+      });
+    }
+    function saveSettings() {
+      state.settings.basePeriodStart = els.basePeriodStart.value || state.settings.basePeriodStart;
+      state.settings.commonHourlyRate = Number(els.commonHourlyRate.value || 0);
+      state.settings.installFloorRate = Number(els.installFloorRate.value || 30);
+      state.settings.overtimeMultiplier = Number(els.overtimeMultiplier.value || 1.5);
+      persist(); render();
+    }
+    function saveEntry(e) {
+      e.preventDefault();
+      const hours = calcHours(els.startTime.value, els.endTime.value);
+      if (hours <= 0) return showError('End time must be later than start time.');
+      const category = els.category.value;
+      const salesAmount = Number(els.salesAmount.value || 0);
+      const commissionPercent = Number(els.commissionPercent.value || 0);
+      const entry = {
+        id: state.editingId || crypto.randomUUID(),
+        date: els.workDate.value,
+        jobName: els.jobName.value.trim(),
+        category,
+        driveMinutes: Number(els.driveMinutes.value || 0),
+        startTime: els.startTime.value,
+        endTime: els.endTime.value,
+        hours,
+        salesAmount,
+        commissionPercent,
+        commissionShare: round2(salesAmount * (commissionPercent / 100)),
+        notes: els.notes.value.trim()
+      };
+      if (!entry.date || !entry.jobName) return showError('Date and job name are required.');
+      const idx = state.entries.findIndex(x => x.id === entry.id);
+      if (idx >= 0) state.entries[idx] = entry; else state.entries.push(entry);
+      state.entries.sort((a,b) => new Date(a.date+'T'+a.startTime) - new Date(b.date+'T'+b.startTime));
+      state.editingId = null;
+      persist(); resetForm(false); render(); switchScreen('entries');
+    }
+    function computePeriodItems(lengthDays) {
+      const range = currentPeriodRange(lengthDays);
+      return state.entries.filter(e => e.date >= range.start && e.date <= range.end).sort((a,b) => new Date(a.date+'T'+a.startTime) - new Date(b.date+'T'+b.startTime));
+    }
+    function render() {
+      const items = computePeriodItems(state.selectedViewPeriod);
+      const summary = summarize(items);
+      const range = currentPeriodRange(state.selectedViewPeriod);
+      els.periodHeadline.textContent = `${state.selectedViewPeriod === 14 ? '2-week' : '1-week'} view: ${prettyDate(range.start)} to ${prettyDate(range.end)}`;
+      els.totalHours.textContent = summary.totalHours.toFixed(2);
+      els.driveHours.textContent = (summary.driveMinutes / 60).toFixed(2);
+      els.installHours.textContent = summary.installHours.toFixed(2);
+      els.effectiveInstallRate.textContent = money(summary.installHours ? summary.installCommission / summary.installHours : 0);
+      els.installFloorAmount.textContent = money(summary.installFloorAmount);
+      els.installStatus.textContent = summary.installHours ? (summary.installCommission >= summary.installFloorAmount ? 'Meets floor' : 'Below floor') : '—';
+      els.installStatus.className = 'money ' + (summary.installHours ? (summary.installCommission >= summary.installFloorAmount ? 'status-good' : 'status-warn') : '');
+      els.periodSummaryBox.innerHTML = `<strong>Current range:</strong> ${prettyDate(range.start)} to ${prettyDate(range.end)}<br><strong>Total hours:</strong> ${summary.totalHours.toFixed(2)}<br><strong>Install commission:</strong> ${money(summary.installCommission)}<br><strong>Install floor requirement:</strong> ${money(summary.installFloorAmount)}<br><strong>Common non-install hourly rate:</strong> ${money(state.settings.commonHourlyRate)}<br><strong>Overtime multiplier:</strong> ${state.settings.overtimeMultiplier.toFixed(2)}x`;
+      renderEntries(items);
+      updatePeriodButtons();
+    }
+    function summarize(items) {
+      let totalHours = 0, driveMinutes = 0, installHours = 0, installCommission = 0, installFloorAmount = 0;
+      const floorBase = Number(state.settings.installFloorRate || 30);
+      const overtimeFloor = floorBase * Number(state.settings.overtimeMultiplier || 1.5);
+      items.forEach(entry => {
+        const startTotal = totalHours;
+        totalHours += entry.hours;
+        driveMinutes += Number(entry.driveMinutes || 0);
+        if (entry.category === 'Install') {
+          installHours += entry.hours;
+          installCommission += Number(entry.commissionShare || 0);
+          const pre40Left = Math.max(0, 40 - startTotal);
+          const pre40Hours = Math.min(entry.hours, pre40Left);
+          const post40Hours = Math.max(0, entry.hours - pre40Hours);
+          installFloorAmount += (pre40Hours * floorBase) + (post40Hours * overtimeFloor);
+        }
+      });
+      return { totalHours, driveMinutes, installHours, installCommission, installFloorAmount: round2(installFloorAmount) };
+    }
+    function renderEntries(items) {
+      if (!items.length) { els.entryList.innerHTML = '<div class="empty">No entries in the current period yet.</div>'; return; }
+      els.entryList.innerHTML = '';
+      let runningHours = 0;
+      items.forEach(entry => {
+        const startTotal = runningHours;
+        runningHours += entry.hours;
+        const div = document.createElement('article');
+        div.className = 'entry';
+        let extra = '';
+        if (entry.category === 'Install') {
+          const pre40Left = Math.max(0, 40 - startTotal);
+          const pre40Hours = Math.min(entry.hours, pre40Left);
+          const post40Hours = Math.max(0, entry.hours - pre40Hours);
+          const floorBase = Number(state.settings.installFloorRate || 30);
+          const overtimeFloor = floorBase * Number(state.settings.overtimeMultiplier || 1.5);
+          const floorAmount = round2((pre40Hours * floorBase) + (post40Hours * overtimeFloor));
+          const effectiveRate = entry.hours ? round2(entry.commissionShare / entry.hours) : 0;
+          extra = `<div class="entry-meta">Effective rate: ${money(effectiveRate)} · Floor needed: ${money(floorAmount)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
+        } else {
+          const pre40Left = Math.max(0, 40 - startTotal);
+          const pre40Hours = Math.min(entry.hours, pre40Left);
+          const post40Hours = Math.max(0, entry.hours - pre40Hours);
+          const pay = round2((pre40Hours * state.settings.commonHourlyRate) + (post40Hours * state.settings.commonHourlyRate * state.settings.overtimeMultiplier));
+          extra = `<div class="entry-meta">Hourly pay: ${money(pay)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
+        }
+        div.innerHTML = `<div class="entry-top"><div><strong>${escapeHtml(entry.jobName)}</strong><div class="entry-meta">${prettyDate(entry.date)} · ${escapeHtml(entry.category)}</div></div><div class="hours">${entry.hours.toFixed(2)} hrs</div></div><div class="entry-bottom"><div><div class="entry-meta">${entry.startTime} - ${entry.endTime} · Drive ${entry.driveMinutes} min</div>${extra}${entry.notes ? `<div class="note">${escapeHtml(entry.notes)}</div>` : ''}</div><div class="stack"><button class="btn btn-secondary" data-edit="${entry.id}">Edit</button><button class="btn btn-danger" data-delete="${entry.id}">Delete</button></div></div>`;
+        div.querySelector('[data-edit]').addEventListener('click', () => loadEntry(entry.id));
+        div.querySelector('[data-delete]').addEventListener('click', () => deleteEntry(entry.id));
+        els.entryList.appendChild(div);
+      });
+    }
+    function loadEntry(id) {
+      const entry = state.entries.find(x => x.id === id); if (!entry) return;
+      state.editingId = id;
+      els.workDate.value = entry.date; els.jobName.value = entry.jobName; els.category.value = entry.category; els.driveMinutes.value = entry.driveMinutes;
+      els.startTime.value = entry.startTime; els.endTime.value = entry.endTime; els.salesAmount.value = entry.salesAmount || ''; els.commissionPercent.value = String(entry.commissionPercent || 5); els.notes.value = entry.notes || '';
+      switchScreen('add'); window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function deleteEntry(id) { state.entries = state.entries.filter(x => x.id !== id); persist(); render(); }
+    function resetForm(resetDate=true) {
+      state.editingId = null; els.entryForm.reset(); els.driveMinutes.value = 0; els.commissionPercent.value = '5';
+      if (resetDate) els.workDate.value = formatDateInput(new Date());
+      els.startTime.value = '08:00'; els.endTime.value = '17:00'; hideError();
+    }
+    function exportCurrentPeriodCsv() {
+      const items = computePeriodItems(14);
+      const rows = [['Date','Job Name','Category','Start','End','Hours','Drive Minutes','Sales Amount','Commission Percent','Commission Share','Notes']];
+      items.forEach(e => rows.push([e.date,e.jobName,e.category,e.startTime,e.endTime,e.hours,e.driveMinutes,e.salesAmount,e.commissionPercent,e.commissionShare,(e.notes||'').replace(/\n/g,' ')]));
+      const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\n');
+      downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'cbd-installer-tracker-2-week-export.csv');
+    }
+    function exportBackupJson() {
+      downloadBlob(new Blob([JSON.stringify({ entries: state.entries, settings: state.settings }, null, 2)], { type: 'application/json' }), 'cbd-installer-tracker-backup.json');
+    }
+    function exportSettingsJson() {
+      downloadBlob(new Blob([JSON.stringify({ settings: state.settings, entries: [] }, null, 2)], { type: 'application/json' }), 'cbd-installer-tracker-settings-only.json');
+    }
+    function importJson(event) {
+      const file = event.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          state.entries = parsed.entries || [];
+          state.settings = Object.assign({}, defaultState.settings, parsed.settings || {});
+          persist(); setDefaults(); renderCategorySelect(); render();
+        } catch (err) { alert('Import failed.'); }
+      };
+      reader.readAsText(file);
+    }
+    function switchScreen(target) {
+      document.querySelectorAll('[data-screen]').forEach(sec => sec.classList.toggle('hidden', sec.dataset.screen !== target));
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.target === target));
+    }
+    function updatePeriodButtons() { document.querySelectorAll('[data-view-period]').forEach(btn => btn.classList.toggle('active', Number(btn.dataset.viewPeriod) === state.selectedViewPeriod)); }
+    function currentPeriodRange(lengthDays) {
+      const base = state.settings.basePeriodStart || formatDateInput(new Date());
+      const today = new Date(); const day = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const baseDate = new Date(base + 'T12:00:00');
+      const diffDays = Math.floor((day - baseDate) / 86400000);
+      const cycles = diffDays >= 0 ? Math.floor(diffDays / lengthDays) : 0;
+      const start = new Date(baseDate); start.setDate(baseDate.getDate() + cycles * lengthDays);
+      const end = new Date(start); end.setDate(start.getDate() + lengthDays - 1);
+      return { start: formatDateInput(start), end: formatDateInput(end) };
+    }
+    function getNearestWednesday(iso) { const d = new Date(iso + 'T12:00:00'); const diff = (d.getDay() - 3 + 7) % 7; d.setDate(d.getDate() - diff); return formatDateInput(d); }
+    function calcHours(start, end) { return round2((toMinutes(end) - toMinutes(start)) / 60); }
+    function toMinutes(time) { const [h,m] = time.split(':').map(Number); return h*60+m; }
+    function round2(v) { return Math.round((Number(v)||0)*100)/100; }
+    function money(v) { return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(v||0); }
+    function prettyDate(value) { return new Date(value + 'T12:00:00').toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }); }
+    function formatDateInput(date) { const y=date.getFullYear(), m=String(date.getMonth()+1).padStart(2,'0'), d=String(date.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
+    function escapeHtml(str) { const div=document.createElement('div'); div.textContent=str; return div.innerHTML; }
+    function showError(text) { els.formError.textContent = text; els.formError.classList.remove('hidden'); }
+    function hideError() { els.formError.classList.add('hidden'); }
+    function applyTheme(theme) { document.documentElement.dataset.theme = theme; els.themeToggle.textContent = theme === 'dark' ? '☀' : '☾'; }
+    function downloadBlob(blob, filename) { const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),500); }
+  </script>
+</body>
+</html>
