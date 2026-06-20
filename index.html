@@ -776,13 +776,22 @@
           const linkedDaysText = jobGroup.entries.length > 1
             ? ` · Allocated job total: ${money(allocatedJobTotal)} · Linked days: ${jobGroup.entries.length}`
             : '';
-          extra = `<div class="entry-meta">Day percentage total: ${money(dayPercentageTotal)} · Percentage rate: ${Number(entry.commissionPercent || jobGroup.commissionPercent || 0)}% · Job total: ${money(jobGroup.masterSalesAmount || Number(entry.salesAmount || 0))}${linkedDaysText} · Effective hourly rate: ${money(effectiveRate)} · Floor minimum: ${money(floorAmount)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
+          extra = `
+            <div class="entry-meta"><strong>Percentage rate:</strong> ${Number(entry.commissionPercent || jobGroup.commissionPercent || 0)}%</div>
+            <div class="entry-meta"><strong>Job total:</strong> ${money(jobGroup.masterSalesAmount || Number(entry.salesAmount || 0))}${linkedDaysText}</div>
+            <div class="entry-meta"><strong>Effective hourly rate:</strong> ${money(effectiveRate)}</div>
+            <div class="entry-meta"><strong>Floor minimum:</strong> ${money(floorAmount)}</div>
+            <div class="entry-meta"><strong>Pre-40:</strong> ${pre40Hours.toFixed(2)}h · <strong>Post-40:</strong> ${post40Hours.toFixed(2)}h</div>
+          `;
         } else {
           const pre40Left = Math.max(0, 40 - startTotal);
           const pre40Hours = Math.min(entryHours, pre40Left);
           const post40Hours = Math.max(0, entryHours - pre40Hours);
           const pay = round2((pre40Hours * state.settings.commonHourlyRate) + (post40Hours * state.settings.commonHourlyRate * state.settings.overtimeMultiplier));
-          extra = `<div class="entry-meta">Hourly pay: ${money(pay)} · Pre-40: ${pre40Hours.toFixed(2)}h · Post-40: ${post40Hours.toFixed(2)}h</div>`;
+          extra = `
+            <div class="entry-meta"><strong>Hourly pay:</strong> ${money(pay)}</div>
+            <div class="entry-meta"><strong>Pre-40:</strong> ${pre40Hours.toFixed(2)}h · <strong>Post-40:</strong> ${post40Hours.toFixed(2)}h</div>
+          `;
         }
         const displaySales = Number(entry.salesAmount || 0);
         const displayCommission = entry.category === 'Install' ? getAllocatedCommissionShare(entry) : Number(entry.commissionShare || 0);
