@@ -99,7 +99,15 @@
     .btn-danger { background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface-2)); border: 1px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border)); }
     .list { display: grid; gap: .75rem; }
     .entry-top, .entry-bottom { display: flex; justify-content: space-between; gap: .75rem; }
-    .entry-meta, .note { color: var(--color-text-muted); font-size: var(--text-sm); }
+    .entry-top { align-items: flex-start; }
+    .entry-bottom { align-items: flex-start; }
+    .entry-body { display: grid; gap: .4rem; flex: 1; min-width: 0; }
+    .entry-meta, .note { color: var(--color-text-muted); font-size: var(--text-sm); line-height: 1.45; word-break: break-word; }
+    .entry-meta strong, .note strong { color: var(--color-text); }
+    .entry .hours { white-space: nowrap; }
+    .entry .stack { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .entry .btn { min-height: 44px; }
+    .note { margin-top: .2rem; }
     .footer-nav {
       position: fixed;
       left: 0;
@@ -778,10 +786,7 @@
         }
         const displaySales = Number(entry.salesAmount || 0);
         const displayCommission = entry.category === 'Install' ? getAllocatedCommissionShare(entry) : Number(entry.commissionShare || 0);
-        const salesLine = (entry.category === 'Install' ? displaySales : Number(entry.salesAmount || 0)) > 0
-          ? `<div class="entry-meta">Sales: ${money(displaySales)} · Commission: ${entry.commissionPercent}% · Share: ${money(displayCommission)}</div>`
-          : '';
-        div.innerHTML = `<div class="entry-top"><div><strong>${escapeHtml(entry.jobName)}</strong><div class="entry-meta">${prettyDate(entry.date)} · ${escapeHtml(entry.category)}</div></div><div class="hours">${entry.hours.toFixed(2)} hrs</div></div><div class="entry-bottom"><div><div class="entry-meta">${entry.startTime} - ${entry.endTime} · Drive ${entry.driveMinutes} min</div>${salesLine}${extra}${entry.notes ? `<div class="note">${escapeHtml(entry.notes)}</div>` : ''}</div><div class="stack"><button class="btn btn-secondary" data-edit="${entry.id}">Edit</button><button class="btn btn-danger" data-delete="${entry.id}">Delete</button></div></div>`;
+        div.innerHTML = `<div class="entry-top"><div><strong>${escapeHtml(entry.jobName)}</strong><div class="entry-meta">${prettyDate(entry.date)} · ${escapeHtml(entry.category)}</div></div><div class="hours">${entry.hours.toFixed(2)} hrs</div></div><div class="entry-bottom"><div class="entry-body"><div class="entry-meta"><strong>Time:</strong> ${entry.startTime} - ${entry.endTime}</div><div class="entry-meta"><strong>Drive:</strong> ${entry.driveMinutes} min</div>${displaySales > 0 ? `<div class="entry-meta"><strong>Job total:</strong> ${money(displaySales)}</div>` : ''}${displayCommission > 0 ? `<div class="entry-meta"><strong>Day percentage total:</strong> ${money(displayCommission)}</div>` : ''}${extra}${entry.notes ? `<div class="note"><strong>Notes:</strong> ${escapeHtml(entry.notes)}</div>` : ''}</div><div class="stack"><button class="btn btn-secondary" data-edit="${entry.id}">Edit</button><button class="btn btn-danger" data-delete="${entry.id}">Delete</button></div></div>`;
         div.querySelector('[data-edit]').addEventListener('click', () => loadEntry(entry.id));
         div.querySelector('[data-delete]').addEventListener('click', () => deleteEntry(entry.id));
         els.entryList.appendChild(div);
