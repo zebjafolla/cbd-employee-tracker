@@ -648,20 +648,37 @@
       let totalHours = 0, driveMinutes = 0, installHours = 0, installCommission = 0, installFloorAmount = 0;
       const floorBase = Number(state.settings.installFloorRate || 30);
       const overtimeFloor = floorBase * Number(state.settings.overtimeMultiplier || 1.5);
+      const weeklyHours = new Map();
+
       items.forEach(entry => {
-        const startTotal = totalHours;
-        totalHours += entry.hours;
+        totalHours += Number(entry.hours || 0);
         driveMinutes += Number(entry.driveMinutes || 0);
+
         if (entry.category === 'Install') {
-          installHours += entry.hours;
+          installHours += Number(entry.hours || 0);
           installCommission += getAllocatedCommissionShare(entry);
-          const pre40Left = Math.max(0, 40 - startTotal);
-          const pre40Hours = Math.min(entry.hours, pre40Left);
-          const post40Hours = Math.max(0, entry.hours - pre40Hours);
+
+          const weekRange = currentPeriodRange(7, entry.date);
+          const weekKey = weekRange.start;
+          const weekRunningHours = weeklyHours.get(weekKey) || 0;
+
+          const entryHours = Number(entry.hours || 0);
+          const pre40Left = Math.max(0, 40 - weekRunningHours);
+          const pre40Hours = Math.min(entryHours, pre40Left);
+          const post40Hours = Math.max(0, entryHours - pre40Hours);
+
           installFloorAmount += (pre40Hours * floorBase) + (post40Hours * overtimeFloor);
+          weeklyHours.set(weekKey, weekRunningHours + entryHours);
         }
       });
-      return { totalHours, driveMinutes, installHours, installCommission, installFloorAmount: round2(installFloorAmount) };
+
+      return {
+        totalHours,
+        driveMinutes,
+        installHours,
+        installCommission: round2(installCommission),
+        installFloorAmount: round2(installFloorAmount)
+      };
     }
 
     function normalizeJobName(name) {
